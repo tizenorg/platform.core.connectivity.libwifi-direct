@@ -1,0 +1,3 @@
+@PREFIX@/include/wifi-direct/*.h
+@PREFIX@/lib/*.la
+@PREFIX@/lib/pkgconfig/wifi-direct.pc

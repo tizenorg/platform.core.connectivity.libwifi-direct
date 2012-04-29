@@ -1,0 +1,8 @@
+libwifi-direct (0.0.1) unstable; urgency=low
+
+  * Wi-Fi Direct library initial upload
+  * Git : public/pkgs/w/libwifi-direct
+  * Tag : libwifi-direct_0.0.1
+
+ -- Dongwook Lee <dwmax.lee@samsung.com>  Sat, 17 Mar 2012 18:41:24 +0900
+
