@@ -5,6 +5,7 @@ Release:    1
 Group:      TO_BE_FILLED
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: packaging/libwifi-direct.manifest 
 BuildRequires:  pkgconfig(dbus-glib-1)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(vconf)
@@ -36,6 +37,7 @@ export ARCH=i586
 %endif
 
 %build
+cp %{SOURCE1001} .
 
 cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 make %{?jobs:-j%jobs}
@@ -50,12 +52,14 @@ rm -rf %{buildroot}
 
 
 %files
+%manifest libwifi-direct.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libwifi-direct.so
 %{_libdir}/libwifi-direct.so.0
 %{_libdir}/libwifi-direct.so.0.0
 
 %files devel 
+%manifest libwifi-direct.manifest
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/wifi-direct.pc
 %{_includedir}/wifi-direct/wifi-direct.h
