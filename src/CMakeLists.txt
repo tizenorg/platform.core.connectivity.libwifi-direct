@@ -107,5 +107,6 @@ CONFIGURE_FILE(wifi-direct.pc.in wifi-direct.pc @ONLY)
 # Install
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION lib COMPONENT Runtime) 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/wifi-direct.h DESTINATION include/wifi-direct)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/wifi-direct-internal.h DESTINATION include/wifi-direct)
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/wifi-direct.pc DESTINATION lib/pkgconfig)
 

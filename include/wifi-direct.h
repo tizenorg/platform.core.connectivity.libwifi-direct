@@ -47,7 +47,7 @@ typedef enum
 	WIFI_DIRECT_ERROR_INVALID_PARAMETER = -EINVAL,  /**< Invalid function parameter */
 	WIFI_DIRECT_ERROR_RESOURCE_BUSY = -EBUSY,  /**< Device or resource busy */
 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT = -ETIMEDOUT,  /**< Connection timed out */
-	WIFI_DIRECT_ERROR_STRANGE_CLIENT = -0x00008000|0x0201,  /**< Invalid Client */
+	WIFI_DIRECT_ERROR_NOT_INITIALIZED = -0x00008000|0x0201,  /**< Not initialized */
 	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED = -0x00008000|0x0202,  /**< I/O error */
 	WIFI_DIRECT_ERROR_WIFI_USED = -0x00008000|0x0203,  /**< WiFi is being used */
 	WIFI_DIRECT_ERROR_MOBILE_AP_USED = -0x00008000|0x0204,  /**< Mobile AP is being used */
@@ -197,14 +197,14 @@ typedef enum
 
 
 /**
- * Wi-Fi Direct WPS config methods
- */
-typedef enum
-{
-	WIFI_DIRECT_WPS_PUSHBUTTON = 0x0001,		/**< Push Button mode*/
-	WIFI_DIRECT_WPS_DISPLAY = 0x0002,			/**< Display mode */
-	WIFI_DIRECT_WPS_KEYPAD = 0x0004,			/**< Keypad mode */
-} wifi_direct_wps_cfg_e;
+* @brief Enumeration for Wi-Fi WPS type
+*/
+typedef enum {
+	WIFI_DIRECT_WPS_TYPE_NONE = 0x00,  /**< No WPS type */
+	WIFI_DIRECT_WPS_TYPE_PBC = 0x01,  /**< Push Button Configuration */
+	WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY = 0x02,  /**< Display PIN code */
+	WIFI_DIRECT_WPS_TYPE_PIN_KEYPAD = 0x04,  /**< Provide the keypad to input the PIN */
+} wifi_direct_wps_type_e;
 
 /**
 * @struct wifi_direct_config_data_s
@@ -221,7 +221,7 @@ typedef struct
 	int channel;
 
 	/** WPS configuration parameters. */
-	wifi_direct_wps_cfg_e wps_config;
+	wifi_direct_wps_type_e wps_config;
 
 	/** Max number of STAs allowed associations */
 	int max_clients;
@@ -255,8 +255,10 @@ typedef struct
 	bool is_connected;  /** Is peer connected*/
 	bool is_group_owner;  /** Is an active P2P Group Owner */    
 	bool is_persistent_group_owner;  /** Is a stored Persistent GO */
-	wifi_direct_primary_device_type_e primary_device_type;  /** primary category of device */
-	wifi_direct_secondary_device_type_e secondary_device_type;  /** sub category of device */
+	wifi_direct_primary_device_type_e primary_device_type;  /** Primary category of device */
+	wifi_direct_secondary_device_type_e secondary_device_type;  /** Sub category of device */
+	int supported_wps_types;  /** The list of supported WPS type. \n
+	The OR operation on #wifi_direct_wps_type_e can be used like #WIFI_DIRECT_WPS_TYPE_PBC | #WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY */
 } wifi_direct_discovered_peer_info_s;
 
 
@@ -266,11 +268,13 @@ typedef struct
  */
 typedef struct
 {
-	char* ssid;  /** Null-terminated device friendly name. */
+	char* ssid;  /** Device friendly name. */
+	char* ip_address;  /**< The IP address */
 	char* mac_address;  /** Device's P2P Device Address */
 	char* interface_address;  /** Device's P2P Interface Address */
 	bool p2p_supported;  /* whether peer is a P2P device */
 	wifi_direct_primary_device_type_e	primary_device_type;  /* primary category of device */
+	int channel;  /* Operating channel */
 } wifi_direct_connected_peer_info_s;
 
 /**
@@ -337,6 +341,23 @@ typedef void (*wifi_direct_connection_state_changed_cb) (int error_code,
 														 const char
 														 *mac_address,
 														 void *user_data);
+
+
+
+/**
+* @brief Called when IP address of client is assigned when your device is group owner.
+* @param[in] mac_address  The MAC address of connection peer
+* @param[in] ip_address  The IP address of connection peer
+* @param[in] interface_address  The interface address of connection peer
+* @param[in] user_data  The user data passed from the callback registration function
+* @see wifi_direct_set_client_ip_address_assigned_cb()
+* @see wifi_direct_unset_client_ip_address_assigned_cb()
+*/
+typedef void (*wifi_direct_client_ip_address_assigned_cb) (const char* mac_address,
+														 const char* ip_address,
+														 const char* interface_address,
+														 void *user_data);
+
 
 
 /*=============================================================================
@@ -733,6 +754,36 @@ int wifi_direct_set_connection_state_changed_cb(wifi_direct_connection_state_cha
  * \endcode
  ******************************************************************************/
 int wifi_direct_unset_connection_state_changed_cb(void);
+
+
+/**
+* @brief Registers the callback called when IP address of client is assigned when your device is group owner.
+* @param[in] cb  The callback function to invoke
+* @param[in] user_data  The user data to be passed to the callback function
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+* @see wifi_direct_unset_client_ip_address_assigned_cb()
+* @see wifi_direct_client_ip_address_assigned_cb()
+*/
+int wifi_direct_set_client_ip_address_assigned_cb(wifi_direct_client_ip_address_assigned_cb cb, void* user_data);
+
+
+/**
+* @brief Unregisters the callback called when IP address of client is assigned when your device is group owner.
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+* @see wifi_direct_set_connection_state_changed_cb()
+*/
+int wifi_direct_unset_client_ip_address_assigned_cb(void);
+
+
 
 
 /*****************************************************************************************/
@@ -1670,6 +1721,25 @@ int wifi_direct_set_ssid(const char *ssid);
 int wifi_direct_get_ssid(char **ssid);
 
 
+/**
+* @brief Gets the name of network interface. For example, eth0 and pdp0.
+* @remarks @a name must be released with free() by you.
+* @param[out] name  The name of network interface
+* @return 0 on success, otherwise negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_OUT_OF_MEMORY  Out of memory
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
+* @see wifi_direct_activate()
+*/
+int wifi_direct_get_network_interface_name(char** name);
+
+
 /*****************************************************************************************/
 /* wifi_direct_get_ip_address API function prototype
  * int wifi_direct_get_ip_address(char** ip_address)
@@ -1720,6 +1790,44 @@ int wifi_direct_get_ssid(char **ssid);
  *
  ******************************************************************************/
 int wifi_direct_get_ip_address(char **ip_address);
+
+/**
+* @brief Gets the Subnet Mask.
+* @remarks @a subnet_mask must be released with free() by you.
+* @param[out] subnet_mask  The subnet mask
+* @return 0 on success, otherwise negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_OUT_OF_MEMORY  Out of memory
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
+* @see wifi_direct_activate()
+*/
+int wifi_direct_get_subnet_mask(char** subnet_mask);
+
+
+/**
+* @brief Gets the Gateway address.
+* @remarks @a gateway_address must be released with free() by you.
+* @param[out] gateway_address  The gateway address
+* @return 0 on success, otherwise negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_OUT_OF_MEMORY  Out of memory
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
+* @see wifi_direct_activate()
+*/
+int wifi_direct_get_gateway_address(char** gateway_address);
+
 
 
 /*****************************************************************************************/
@@ -1824,6 +1932,42 @@ int wifi_direct_get_mac_address(char **mac_address);
 int wifi_direct_get_state(wifi_direct_state_e * state);
 
 
+
+/**
+* @brief Checks whether this device is discoverable or not.
+* @param[out] discoverable  Indicats whether this device is discoverable or not
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+*/
+int wifi_direct_is_discoverable(bool* discoverable);
+
+
+/**
+* @brief Gets the primary device type of local device.
+* @param[out] type  The primary device type
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+*/
+int wifi_direct_get_primary_device_type(wifi_direct_primary_device_type_e* type);
+
+
+
 /*****************************************************************************************/
 /* wifi_direct_accept_connection API function prototype
  * int wifi_direct_accept_connection(char* mac_address);
@@ -1883,55 +2027,6 @@ int wifi_direct_get_state(wifi_direct_state_e * state);
  *
  ******************************************************************************/
 int wifi_direct_accept_connection(char *mac_address);
-
-
-/*****************************************************************************************/
-/* wifi_direct_get_go_intent API function prototype
- * int wifi_direct_get_go_intent(int * intent);
- */
-/**
- * \brief This API shall get GO intent value. \n
- * @param * intent              variable to store intent value. Application must allocate memory.
- *
- * \par Sync (or) Async:
- * This is a Synchronous API.
- *
- * \warning
- *  None
- *
- *
- * \return Return Type (int) \n
- * - WIFI_DIRECT_ERROR_NONE on success \n
- * - WIFI_DIRECT_ERROR_OPERATION_FAILED for "Unkown error" \n
- * - WIFI_DIRECT_ERROR_OUT_OF_MEMORY for "Out of memory" \n
- * - WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for "I/O error" \n
- * - WIFI_DIRECT_ERROR_NOT_PERMITTED for "Operation not permitted" \n
- * - WIFI_DIRECT_ERROR_INVALID_PARAMETER for "Invalid function parameter" \n
- * - WIFI_DIRECT_ERROR_RESOURCE_BUSY for "Device or resource busy" \n
- * - WIFI_DIRECT_ERROR_STRANGE_CLIENT for "Invalid Client" \n
- *
- * \par Prospective Clients:
- * External Apps.
- *
- * \code
- *
- * #include <wifi-direct.h>
- *
- * void foo()
- * {
- * int  result;
- * int go_intent;
- *
- * result = wifi_direct_get_go_intent(&go_intent);
- *
- * if(result == WIFI_DIRECT_ERROR_NONE)......... // getting GO intent is successful
- *
- *\endcode
- *
- *\remarks None.
- *
- ******************************************************************************/
-int wifi_direct_get_go_intent(int *intent);
 
 
 
@@ -1998,7 +2093,7 @@ int wifi_direct_set_wpa_passphrase(char *passphrase);
 
  * \pre Device must support the pbc button mode.
  *
- * \see wifi_direct_get_supported_wps_mode
+ * \see wifi_direct_foreach_supported_wps_types
  *
  * \par Sync (or) Async:
  * This is a Synchronous API.
@@ -2212,7 +2307,7 @@ int wifi_direct_generate_wps_pin(void);
  *
  * @param wps_mode              Memory to store supported wps mode. Application must allocate memory.
  *
- * \see wifi_direct_wps_cfg_e
+ * \see wifi_direct_wps_type_e
  *
  * \par Sync (or) Async:
  * This is a Synchronous API.
@@ -2254,6 +2349,98 @@ int wifi_direct_generate_wps_pin(void);
  *
  ******************************************************************************/
 int wifi_direct_get_supported_wps_mode(int *wps_mode);
+
+
+/**
+* @brief Called when you get the supported WPS(Wi-Fi Protected Setup) type repeatedly.
+* @param[in] type  The type of WPS
+* @param[in] user_data  The user data passed from the request function
+* @return  @c true to continue with the next iteration of the loop, \n @c false to break out of the loop
+* @pre  wifi_direct_foreach_supported_wps_types() will invoke this callback.
+* @see  wifi_direct_foreach_supported_wps_types()
+*/
+typedef bool(*wifi_direct_supported_wps_type_cb)(wifi_direct_wps_type_e type, void* user_data);
+
+/**
+* @brief Gets the supported WPS(Wi-Fi Protected Setup) types.
+* @param[in] callback  The callback function to invoke
+* @param[in] user_data  The user data to be passed to the callback function
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @see wifi_direct_supported_wps_type_cb()
+*/
+int wifi_direct_foreach_supported_wps_types(wifi_direct_supported_wps_type_cb callback, void* user_data);
+
+/**
+ * @brief Sets the WPS(Wi-Fi Protected Setup) type.
+ * @param[in] type  The type of WPS
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @see wifi_direct_foreach_supported_wps_types()
+ */
+int wifi_direct_set_wps_type(wifi_direct_wps_type_e type);
+/**
+ * @brief Gets the WPS(Wi-Fi Protected Setup) type.
+ * @param[out] type  The type of WPS
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @see wifi_direct_foreach_supported_wps_types()
+ */
+int wifi_direct_get_wps_type(wifi_direct_wps_type_e* type);
+
+/**
+* @brief Sets the intent of a group owner.
+* @remakrs The range of intent is 0 ~ 15.
+* @param[in] intent  The intent of a group owner
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @see wifi_direct_get_group_owner_intent()
+*/
+int wifi_direct_set_group_owner_intent(int intent);
+
+/**
+* @brief Gets the intent of a group owner.
+* @param[out] intent  The intent of a group owner
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @see wifi_direct_set_group_owner_intent()
+*/
+int wifi_direct_get_group_owner_intent(int* intent);
+	
+/**
+* @brief Sets the max number of clients.
+* @param[in] max  The max number of clients
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @see wifi_direct_get_max_clients()
+*/
+int wifi_direct_set_max_clients(int max);
+	
+/**
+* @brief Gets the max number of clients.
+* @param[in] max  The max number of clients
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @see wifi_direct_set_max_clients()
+*/
+int wifi_direct_get_max_clients(int* max);
+
+
+/**
+* @brief Gets the channel of own group.
+* @param[out] channel  The channel of own group
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+*/
+int wifi_direct_get_own_group_channel(int* channel);
 
 
 /*****************************************************************************************/
@@ -2356,7 +2543,7 @@ int wifi_direct_get_config_data(wifi_direct_config_data_s ** config);
 *
 * // Change params
 * config->group_owner_intent = 8;
-* config->wps_config = WIFI_DIRECT_WPS_PUSHBUTTON;
+* config->wps_config = WIFI_DIRECT_WPS_TYPE_PBC;
 * config->want_persistent_group = false;
 * config->hide_SSID = false;
 * strncpy(config->ssid, "My WiFi Direct", WIFI_DIRECT_MAX_SSID_LEN);
@@ -2373,6 +2560,16 @@ int wifi_direct_get_config_data(wifi_direct_config_data_s ** config);
 *
 ******************************************************************************/
 int wifi_direct_set_config_data(wifi_direct_config_data_s * config);
+
+
+/**
+ * @brief Sets the Autoconnection mode.
+ * @param[in]
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @see wifi_direct_foreach_supported_wps_types()
+ */
+int wifi_direct_set_autoconnection_mode(bool mode);
 
 
 /**

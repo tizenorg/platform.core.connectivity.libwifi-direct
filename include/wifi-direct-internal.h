@@ -55,14 +55,16 @@ typedef unsigned int ipv4_addr_t;
 #define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
 #define IP2STR(a) (a)[0], (a)[1], (a)[2], (a)[3]
 
-#ifdef IPSTR
-#undef IPSTR
-#define IPSTR "  %d.%d.%d.%d"
-#endif /** IPSTR */
+#define IPSTR "%d.%d.%d.%d"
 
 #define WIFI_DIRECT_MAX_SSID_LEN 32
 #define WIFI_DIRECT_WPS_PIN_LEN 8
+#define WIFI_DIRECT_MAC_ADDRESS_INFO_FILE "/opt/etc/.mac.info"
 
+#define VCONFKEY_IFNAME "memory/private/wifi_direct_manager/p2p_ifname"
+#define VCONFKEY_LOCAL_IP "memory/private/wifi_direct_manager/p2p_local_ip"
+#define VCONFKEY_SUBNET_MASK "memory/private/wifi_direct_manager/p2p_subnet_mask"
+#define VCONFKEY_GATEWAY "memory/private/wifi_direct_manager/p2p_gateway"
 
 typedef enum
 {
@@ -94,13 +96,20 @@ typedef enum
 	WIFI_DIRECT_CMD_GET_INCOMMING_PEER_INFO,
 	WIFI_DIRECT_CMD_SET_WPA,
 	WIFI_DIRECT_CMD_GET_SUPPORTED_WPS_MODE,
+	WIFI_DIRECT_CMD_SET_CURRENT_WPS_MODE,
 	WIFI_DIRECT_CMD_GET_CONNECTED_PEERS_INFO,
 	WIFI_DIRECT_CMD_CANCEL_GROUP,
 	WIFI_DIRECT_CMD_DISCONNECT,
+	WIFI_DIRECT_CMD_SET_GO_INTENT,
 	WIFI_DIRECT_CMD_GET_GO_INTENT,
 	WIFI_DIRECT_CMD_GET_DEVICE_MAC,
 	WIFI_DIRECT_CMD_IS_AUTONOMOUS_GROUP,
-
+	WIFI_DIRECT_CMD_SET_MAX_CLIENT,
+	WIFI_DIRECT_CMD_GET_MAX_CLIENT,
+	WIFI_DIRECT_CMD_SET_AUTOCONNECTION_MODE,
+	WIFI_DIRECT_CMD_IS_DISCOVERABLE,
+	WIFI_DIRECT_CMD_GET_OWN_GROUP_CHANNEL,
+	
 	WIFI_DIRECT_CMD_SET_OEM_LOGLEVEL,
 
 	WIFI_DIRECT_CMD_MAX
@@ -134,6 +143,7 @@ typedef enum
 	WIFI_DIRECT_CLI_EVENT_GROUP_CREATE_RSP,				/**< */
 	WIFI_DIRECT_CLI_EVENT_GROUP_DESTROY_RSP,				/**< */
 
+	WIFI_DIRECT_CLI_EVENT_IP_LEASED_IND,				/**< */
 } wfd_client_event_e;
 
 /**
@@ -143,7 +153,7 @@ typedef struct
 {
 	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
 	int channel;
-	wifi_direct_wps_cfg_e wps_config;
+	wifi_direct_wps_type_e wps_config;
 	int max_clients;
 	bool hide_SSID;
 	int group_owner_intent;
@@ -161,16 +171,17 @@ typedef struct
 {
 	bool is_group_owner;
 	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
-	char mac_address[6];
+	unsigned char mac_address[6];
 	int channel;
 	bool is_connected;
 	unsigned int services;
 	bool is_persistent_go;
-	char intf_mac_address[6];
+	unsigned char intf_mac_address[6];
 	unsigned int wps_device_pwd_id;
 	unsigned int wps_cfg_methods;
 	unsigned int category;
 	unsigned int subcategory;
+	bool is_wfd_device	;
 } wfd_discovery_entry_s;
 
 
@@ -180,11 +191,13 @@ typedef struct
 typedef struct
 {
 	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
-	char mac_address[6];
-	char intf_mac_address[6];
+	unsigned char ip_address[4];
+	unsigned char mac_address[6];
+	unsigned char intf_mac_address[6];
 	unsigned int services;
 	bool is_p2p;
 	unsigned short category;
+	int channel;
 } wfd_connected_peer_info_s;
 
 
@@ -194,7 +207,7 @@ typedef struct
 	int timeout;
 
 	int peer_index;
-	char mac_addr[6];
+	unsigned char mac_addr[6];
 
 } wifi_direct_client_request_data_s;
 

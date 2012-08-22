@@ -77,9 +77,11 @@ typedef struct
 	wifi_direct_device_state_changed_cb activation_cb;
 	wifi_direct_discovery_state_chagned_cb discover_cb;
 	wifi_direct_connection_state_changed_cb connection_cb;
+	wifi_direct_client_ip_address_assigned_cb ip_assigned_cb;	
 	void *user_data_for_cb_activation;
 	void *user_data_for_cb_discover;
 	void *user_data_for_cb_connection;
+	void *user_data_for_cb_ip_assigned;
 
 } wifi_direct_client_info_s;
 
