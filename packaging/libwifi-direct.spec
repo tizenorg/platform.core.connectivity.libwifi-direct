@@ -1,6 +1,6 @@
 Name:       libwifi-direct
 Summary:    wifi direct library (Shared Library)
-Version:    0.2.8
+Version:    0.2.9
 Release:    1
 Group:      TO_BE_FILLED
 License:    Apache-2.0
@@ -16,6 +16,16 @@ BuildRequires:  gettext-devel
 
 %description
 wifi direct library (Shared Library)
+
+%ifarch %{arm}
+Provides: libbcmp2p.so
+Provides: libbcmp2papp.so
+Provides: libwpscli.so
+Provides: libbcmp2psig.so
+Provides: wfd-manager
+Provides: wifi-direct-plugin-broadcom.so
+%endif
+
 
 
 %package devel 
@@ -54,6 +64,31 @@ rm -rf %{buildroot}
 %{_libdir}/libwifi-direct.so
 %{_libdir}/libwifi-direct.so.0
 %{_libdir}/libwifi-direct.so.0.0
+
+%ifarch %{arm}
+/usr/etc/wifi-direct/dhcpd.p2p.conf
+/usr/etc/wifi-direct/dhcpd.wl0.conf
+/usr/etc/wifi-direct/dhcpd.eth.conf
+/usr/etc/wifi-direct/udhcp_script.non-autoip
+%{_bindir}/dhcpd-notify.sh
+%{_bindir}/wifi-direct-server.sh
+%{_bindir}/wifi-direct-dhcp.sh
+
+%{_bindir}/wfd-manager
+%{_libdir}/wifi-direct-plugin-broadcom.so
+%{_libdir}/libbcmp2p.so
+%{_libdir}/libbcmp2papp.so
+%{_libdir}/libbcmp2psig.so
+%{_libdir}/libwpscli.so
+
+%attr(755,-,-) %{_bindir}/wfd-manager
+%attr(755,-,-) %{_bindir}/dhcpd-notify.sh
+%attr(755,-,-) %{_bindir}/wifi-direct-server.sh
+%attr(755,-,-) %{_bindir}/wifi-direct-dhcp.sh
+%attr(755,-,-) /usr/etc/wifi-direct/udhcp_script.non-autoip
+
+%endif
+
 
 %files devel 
 %defattr(-,root,root,-)

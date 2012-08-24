@@ -1,3 +1,11 @@
+libwifi-direct (0.2.9) unstable; urgency=low
+
+  * modified to loading binary of wifi-direct-manager when installing package.
+  * Git : framework/connectivity/libwifi-direct
+  * Tag : libwifi-direct_0.2.9
+
+ -- Sungsik Jang <sungsik.jang@samsung.com>  Fri, 24 Aug 2012 18:45:19 +0900
+
 libwifi-direct (0.2.8) unstable; urgency=low
 
   * tagging "tizen_build"

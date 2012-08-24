@@ -8,3 +8,4 @@ SET(LIBDIR "\${prefix}/lib")
 SET(INCLUDEDIR "\${prefix}/include")
 
 ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(binary)
