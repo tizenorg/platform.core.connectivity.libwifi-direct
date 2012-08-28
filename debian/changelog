@@ -1,3 +1,11 @@
+libwifi-direct (0.2.10) unstable; urgency=low
+
+  * changed the binary of wifi-direct-manager.
+  * Git : rsa/framework/connectivity/libwifi-direct
+  * Tag : libwifi-direct_0.2.10
+
+ -- Sungsik Jang <sungsik.jang@samsung.com>  Tue, 28 Aug 2012 17:46:39 +0900
+
 libwifi-direct (0.2.9) unstable; urgency=low
 
   * modified to loading binary of wifi-direct-manager when installing package.
