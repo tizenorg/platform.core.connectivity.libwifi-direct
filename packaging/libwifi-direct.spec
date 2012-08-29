@@ -1,6 +1,6 @@
 Name:       libwifi-direct
 Summary:    wifi direct library (Shared Library)
-Version:    0.2.10
+Version:    0.2.11
 Release:    1
 Group:      TO_BE_FILLED
 License:    Apache-2.0
@@ -40,13 +40,13 @@ wifi direct library (Shared Library) (Developement)
 %setup -q
 
 %ifarch %{arm}
-export ARCH=arm
+%define ARCH arm
 %else
-export ARCH=i586
+%define ARCH i586 
 %endif
 
 %build
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
+cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix} -DARCH=%{ARCH}
 #make %{?jobs:-j%jobs}
 
 %install
