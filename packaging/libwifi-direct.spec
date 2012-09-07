@@ -1,6 +1,6 @@
 Name:       libwifi-direct
 Summary:    wifi direct library (Shared Library)
-Version:    0.2.14
+Version:    0.2.15
 Release:    1
 Group:      TO_BE_FILLED
 License:    Apache-2.0
@@ -55,6 +55,9 @@ rm -rf %{buildroot}
 %__strip %{buildroot}%{_libdir}/libwifi-direct.so.0.0
 
 %post
+vconftool set -t int memory/wifi_direct/state 0 -u 5000 -i
+vconftool set -t int memory/private/wifi_direct_manager/dhcp_ip_lease 0 -i
+vconftool set -t string memory/private/wifi_direct_manager/dhcpc_server_ip 0.0.0.0 -i
 
 %postun
 
