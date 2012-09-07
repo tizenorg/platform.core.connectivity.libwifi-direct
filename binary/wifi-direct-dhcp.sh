@@ -38,11 +38,10 @@ start_dhcp_server()
 		subnet="255.255.255.0"
 	fi
 
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_ifname ${interface}
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_local_ip ${DEFAULT_IP}
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_subnet_mask ${subnet}
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_gateway ${route}
-
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_ifname ${interface} -f
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_local_ip ${DEFAULT_IP} -f
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_subnet_mask ${subnet} -f
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_gateway ${route} -f
 }
 
 start_dhcp_client()
@@ -57,10 +56,10 @@ start_dhcp_client()
 
 stop_dhcp()
 {
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_ifname ""
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_local_ip ""
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_subnet_mask ""
-	vconftool set -t string memory/private/wifi_direct_manager/p2p_gateway ""
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_ifname "" -f
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_local_ip "" -f
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_subnet_mask "" -f
+	vconftool set -t string memory/private/wifi_direct_manager/p2p_gateway "" -f
 
 	killall udhcpc
 	killall udhcpd

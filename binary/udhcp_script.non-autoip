@@ -57,11 +57,11 @@ case "$1" in
 			local_gateway="0.0.0.0"
 		fi
 
-		vconftool set -t string memory/private/wifi_direct_manager/p2p_ifname ${interface}
-		vconftool set -t string memory/private/wifi_direct_manager/p2p_local_ip ${ip}
-		vconftool set -t string memory/private/wifi_direct_manager/p2p_subnet_mask ${subnet}
-		vconftool set -t string memory/private/wifi_direct_manager/p2p_gateway ${local_gateway}
-		vconftool set -t string memory/private/wifi_direct_manager/dhcpc_server_ip ${serverid}
+		vconftool set -t string memory/private/wifi_direct_manager/p2p_ifname ${interface} -f
+		vconftool set -t string memory/private/wifi_direct_manager/p2p_local_ip ${ip} -f
+		vconftool set -t string memory/private/wifi_direct_manager/p2p_subnet_mask ${subnet} -f
+		vconftool set -t string memory/private/wifi_direct_manager/p2p_gateway ${local_gateway} -f
+		vconftool set -t string memory/private/wifi_direct_manager/dhcpc_server_ip ${serverid} -f
 		
 		echo $i >> $TEMP_DHCP_FILE
 		;;

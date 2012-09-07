@@ -1,3 +1,11 @@
+libwifi-direct (0.2.14) unstable; urgency=low
+
+  * changed writing option of vconftool to solve get ip address problerm.
+  * Git : rsa/framework/connectivity/libwifi-direct
+  * Tag : libwifi-direct_0.2.14
+
+ -- Sungsik Jang <sungsik.jang@samsung.com>  Fri, 07 Sep 2012 11:08:12 +0900
+
 libwifi-direct (0.2.13) unstable; urgency=low
 
   * modified the activation problerm (changed plugin so)
