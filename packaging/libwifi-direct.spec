@@ -63,6 +63,7 @@ vconftool set -t string memory/private/wifi_direct_manager/dhcpc_server_ip 0.0.0
 
 
 %files
+%manifest libwifi-direct.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libwifi-direct.so
 %{_libdir}/libwifi-direct.so.0
