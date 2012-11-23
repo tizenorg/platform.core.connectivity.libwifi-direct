@@ -107,8 +107,15 @@ typedef enum
 	WIFI_DIRECT_CMD_SET_MAX_CLIENT,
 	WIFI_DIRECT_CMD_GET_MAX_CLIENT,
 	WIFI_DIRECT_CMD_SET_AUTOCONNECTION_MODE,
+	WIFI_DIRECT_CMD_IS_AUTOCONNECTION_MODE,	
 	WIFI_DIRECT_CMD_IS_DISCOVERABLE,
+	WIFI_DIRECT_CMD_IS_LISTENING_ONLY,
 	WIFI_DIRECT_CMD_GET_OWN_GROUP_CHANNEL,
+	WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP,
+	WIFI_DIRECT_CMD_DEACTIVATE_PERSISTENT_GROUP,
+	WIFI_DIRECT_CMD_IS_PERSISTENT_GROUP,
+	WIFI_DIRECT_CMD_GET_PERSISTENT_GROUP_INFO,
+	WIFI_DIRECT_CMD_REMOVE_PERSISTENT_GROUP,
 	
 	WIFI_DIRECT_CMD_SET_OEM_LOGLEVEL,
 
@@ -158,6 +165,7 @@ typedef struct
 	bool hide_SSID;
 	int group_owner_intent;
 	bool want_persistent_group;
+	bool listen_only;
 	bool auto_connection;
 	wifi_direct_primary_device_type_e primary_dev_type;
 	wifi_direct_secondary_device_type_e secondary_dev_type;
@@ -200,6 +208,11 @@ typedef struct
 	int channel;
 } wfd_connected_peer_info_s;
 
+typedef struct
+{
+	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
+	unsigned char go_mac_address[6];
+} wfd_persistent_group_info_s;
 
 typedef struct
 {

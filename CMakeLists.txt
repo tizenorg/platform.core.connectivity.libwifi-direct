@@ -8,7 +8,3 @@ SET(LIBDIR "\${prefix}/lib")
 SET(INCLUDEDIR "\${prefix}/include")
 
 ADD_SUBDIRECTORY(src)
-
-IF("${ARCH}" MATCHES "arm")
-	ADD_SUBDIRECTORY(binary)
-ENDIF()

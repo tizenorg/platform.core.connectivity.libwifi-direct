@@ -1,3 +1,11 @@
+libwifi-direct (0.3.0) unstable; urgency=low
+
+  * Update from private
+  * Git : rsa/framework/connectivity/libwifi-direct
+  * Tag : libwifi-direct_0.3.0
+
+ -- Gibyoung Kim <lastkgb.kim@samsung.com>  Fri, 23 Nov 2012 22:26:45 +0900
+
 libwifi-direct (0.2.15) unstable; urgency=low
 
   * Install vconf keys with -i option

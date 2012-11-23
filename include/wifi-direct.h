@@ -206,41 +206,6 @@ typedef enum {
 	WIFI_DIRECT_WPS_TYPE_PIN_KEYPAD = 0x04,  /**< Provide the keypad to input the PIN */
 } wifi_direct_wps_type_e;
 
-/**
-* @struct wifi_direct_config_data_s
-* Wi-Fi Direct configuration data structure
-*/
-typedef struct
-{
-	/** ssid */
-	char *ssid;
-
-	/** Specifies the operating channel. If zero, auto channel selection
-	*  will be used to find a quiet channel.
-	*/
-	int channel;
-
-	/** WPS configuration parameters. */
-	wifi_direct_wps_type_e wps_config;
-
-	/** Max number of STAs allowed associations */
-	int max_clients;
-
-	/** TRUE to hide SSID in beacons and probe responses, FALSE otherwise. */
-	bool hide_SSID;
-
-	/** P2P Group owner intent value. */
-	int group_owner_intent;
-
-	bool want_persistent_group;
-
-	/** Auto connection mode */
-	bool auto_connection;
-
-	wifi_direct_primary_device_type_e primary_dev_type;
-	wifi_direct_secondary_device_type_e secondary_dev_type;
-} wifi_direct_config_data_s;
-
 
 /**
  * @struct wifi_direct_discovered_peer_info_s
@@ -1934,8 +1899,9 @@ int wifi_direct_get_state(wifi_direct_state_e * state);
 
 
 /**
-* @brief Checks whether this device is discoverable or not.
-* @param[out] discoverable  Indicats whether this device is discoverable or not
+* @brief Checks whether this device is discoverable or not by P2P discovery.
+* @details If you call wifi_direct_start_discovery(), then your device can be discoverable.
+* @param[out] discoverable  The status of discoverable: (@c true = discoverable, @c false = non-discoverable)
 * @return 0 on success, otherwise a negative error value.
 * @retval #WIFI_DIRECT_ERROR_NONE  Successful
 * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
@@ -1946,9 +1912,30 @@ int wifi_direct_get_state(wifi_direct_state_e * state);
 * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
+* @see wifi_direct_start_discovery()
+* @see wifi_direct_cancel_discovery()
 */
 int wifi_direct_is_discoverable(bool* discoverable);
 
+/**
+* @brief Checks whether the local device is listening only.
+* @details If you call wifi_direct_start_discovery() with @a listen_only as @c true,
+* then skip the initial 802.11 Scan and then enter Listen state instead of cycling between Scan andListen.
+* @param[out] listen_only  The status of listen only: (@c true = listen only, @c false = cycling between Scan and Listen or not in discovery state)
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
+* @see wifi_direct_start_discovery()
+* @see wifi_direct_cancel_discovery()
+* @see wifi_direct_is_discoverable()
+*/
+int wifi_direct_is_listening_only(bool* listen_only);
 
 /**
 * @brief Gets the primary device type of local device.
@@ -1966,6 +1953,21 @@ int wifi_direct_is_discoverable(bool* discoverable);
 */
 int wifi_direct_get_primary_device_type(wifi_direct_primary_device_type_e* type);
 
+ /**
+* @brief Gets the secondary device type of local device.
+* @param[out] type  The secondary device type
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+*/
+int wifi_direct_get_secondary_device_type(wifi_direct_secondary_device_type_e* type);
 
 
 /*****************************************************************************************/
@@ -2427,7 +2429,7 @@ int wifi_direct_get_max_clients(int* max);
 
 
 /**
-* @brief Gets the channel of own group.
+* @brief Gets the channel of own group. - DEPRECATED 
 * @param[out] channel  The channel of own group
 * @return 0 on success, otherwise a negative error value.
 * @retval #WIFI_DIRECT_ERROR_NONE  Successful
@@ -2443,124 +2445,21 @@ int wifi_direct_get_max_clients(int* max);
 int wifi_direct_get_own_group_channel(int* channel);
 
 
-/*****************************************************************************************/
-/* wifi_direct_get_config_data API function prototype
-* int wifi_direct_get_config_data(wifi_direct_config_data_s** config)
-*/
 /**
-* \brief This API shall get Wi-Fi direct configuration data. \n
-* @param config Pointer to store configuration information. Application must free this memory.
-*
-* \see wifi_direct_set_config_data
-*
-* \par Sync (or) Async:
-* This is a Synchronous API.
-*
-* \warning
-*  None
-*
-*
-* \return Return Type (int) \n
-* - WIFI_DIRECT_ERROR_NONE on success \n
-* - WIFI_DIRECT_ERROR_OPERATION_FAILED for "Unkown error" \n
-* - WIFI_DIRECT_ERROR_OUT_OF_MEMORY for "Out of memory" \n
-* - WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for "I/O error" \n
-* - WIFI_DIRECT_ERROR_NOT_PERMITTED for "Operation not permitted" \n
-* - WIFI_DIRECT_ERROR_INVALID_PARAMETER for "Invalid function parameter" \n
-* - WIFI_DIRECT_ERROR_RESOURCE_BUSY for "Device or resource busy" \n
-* - WIFI_DIRECT_ERROR_STRANGE_CLIENT for "Invalid Client" \n
-*
-*
-* \par Prospective Clients:
-* External Apps.
-*
-* \code
-*
-* #include <wifi-direct.h>
-*
-* void foo()
-* {
-* int result;
-* wifi_direct_config_data_s* config;
-*
-* result = wifi_direct_get_config_data(&config);
-*
-* if(result == WIFI_DIRECT_ERROR_NONE)......... // getting config data is successful
-*
-*\endcode
-*
-*\remarks None.
-*
-******************************************************************************/
-int wifi_direct_get_config_data(wifi_direct_config_data_s ** config);
-
-
-/*****************************************************************************************/
-/* wifi_direct_set_config_data API function prototype
-* int wifi_direct_set_config_data(wifi_direct_config_data_s* config);
+* @brief Gets the operating channel.
+* @param[out] channel  The operating channel
+* @return 0 on success, otherwise a negative error value.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
 */
-/**
-* \brief This API shall set or update Wi-Fi direct configuration data. \n
-* @param config Wi-Fi configuration data to be set
-*
-* \see wifi_direct_get_config_data
-*
-* \par Sync (or) Async:
-* This is a Synchronous API.
-*
-* \warning
-*  None
-*
-* \return Return Type (int) \n
-* - WIFI_DIRECT_ERROR_NONE on success \n
-* - WIFI_DIRECT_ERROR_OPERATION_FAILED for "Unkown error" \n
-* - WIFI_DIRECT_ERROR_OUT_OF_MEMORY for "Out of memory" \n
-* - WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for "I/O error" \n
-* - WIFI_DIRECT_ERROR_NOT_PERMITTED for "Operation not permitted" \n
-* - WIFI_DIRECT_ERROR_INVALID_PARAMETER for "Invalid function parameter" \n
-* - WIFI_DIRECT_ERROR_RESOURCE_BUSY for "Device or resource busy" \n
-* - WIFI_DIRECT_ERROR_STRANGE_CLIENT for "Invalid Client" \n
-*
-*
-* \par Prospective Clients:
-* External Apps.
-*
-* \code
-*
-* #include <wifi-direct.h>
-*
-* void foo()
-* {
-* int result;
-* wifi_direct_config_data_s* config;
-*
-* result = wifi_direct_get_config_data(&config);
-*
-* if(result != WIFI_DIRECT_ERROR_NONE)......... // Getting configuration data is not successful
-* {
-*        return;
-* }
-*
-* // Change params
-* config->group_owner_intent = 8;
-* config->wps_config = WIFI_DIRECT_WPS_TYPE_PBC;
-* config->want_persistent_group = false;
-* config->hide_SSID = false;
-* strncpy(config->ssid, "My WiFi Direct", WIFI_DIRECT_MAX_SSID_LEN);
-*
-* result = wifi_direct_set_config_data(config);
-* if(result == WIFI_DIRECT_ERROR_NONE)......... // Setting configuration data is successful
-* {
-*
-*
-*
-*\endcode
-*
-*\remarks None.
-*
-******************************************************************************/
-int wifi_direct_set_config_data(wifi_direct_config_data_s * config);
-
+int wifi_direct_get_operating_channel(int* channel);
 
 /**
  * @brief Sets the Autoconnection mode.
@@ -2570,6 +2469,101 @@ int wifi_direct_set_config_data(wifi_direct_config_data_s * config);
  * @see wifi_direct_foreach_supported_wps_types()
  */
 int wifi_direct_set_autoconnection_mode(bool mode);
+
+int wifi_direct_is_autoconnection_mode(bool* mode);
+
+
+/**
+* @brief Activates the persistent group.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+* @see wifi_direct_deactivate_persistent_group()
+* @see wifi_direct_is_persistent_group_activated()
+*/
+int wifi_direct_activate_persistent_group(void);
+
+/**
+* @brief Deactivates the persistent group.
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre The persistent group of Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+* @see wifi_direct_activate_persistent_group()
+* @see wifi_direct_is_persistent_group_activated()
+*/
+int wifi_direct_deactivate_persistent_group(void);
+
+/**
+* @brief Checks whether the persistent group is activated or not.
+* @param[in] activated  The status of persistent group: (@c true = activated, @c false = deactivated)
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+* @see wifi_direct_activate_persistent_group()
+*/
+int wifi_direct_is_persistent_group_activated(bool* activated);
+
+/**
+* @brief Called when you get the persistent groups repeatedly.
+* @param[in] mac_address  The MAC address of persistent group owner
+* @param[in] ssid  The SSID(Service Set Identifier) of persistent group owner
+* @param[in] user_data  The user data passed from the request function
+* @return  @c true to continue with the next iteration of the loop, \n @c false to break out of theloop
+* @pre  wifi_direct_foreach_persistent_groups() will invoke this callback.
+* @see  wifi_direct_foreach_persistent_groups()
+*/
+typedef bool(*wifi_direct_persistent_group_cb)(const char* mac_address, const char* ssid, void* user_data);
+
+/**
+* @brief Gets the persistent groups.
+* @param[in] callback  The callback function to invoke
+* @param[in] user_data  The user data to be passed to the callback function
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @post wifi_direct_persistent_group_cb() will be called.
+* @see wifi_direct_initialize()
+* @see wifi_direct_persistent_group_cb()
+*/
+int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb callback, void* user_data);
+
+/**
+* @brief Remove a persistent group.
+* @param[in] mac_address  The MAC address of persistent group owner
+* @param[in] ssid  The SSID(Service Set Identifier) of persistent group owner
+* @retval #WIFI_DIRECT_ERROR_NONE  Successful
+* @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+* @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+* @see wifi_direct_initialize()
+* @see wifi_direct_foreach_persistent_groups()
+*/
+int wifi_direct_remove_persistent_group(const char* mac_address, const char* ssid);
 
 
 /**
