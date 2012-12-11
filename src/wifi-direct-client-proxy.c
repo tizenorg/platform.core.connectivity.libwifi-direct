@@ -657,7 +657,7 @@ void __wfd_client_print_entry_list(wfd_discovery_entry_s * list, int num)
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "== Peer index : %d ==\n", i);
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "is Group Owner ? %s\n",
 					   list[i].is_group_owner ? "YES" : "NO");
-		WFD_CLIENT_LOG(WFD_LOG_LOW, "SSID : %s\n", list[i].ssid);
+		WFD_CLIENT_LOG(WFD_LOG_LOW, "device_name : %s\n", list[i].device_name);
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "MAC address : " MACSTR "\n",
 					   MAC2STR(list[i].mac_address));
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "wps cfg method : %x\n", list[i].wps_cfg_methods);
@@ -674,7 +674,7 @@ void __wfd_client_print_connected_peer_info(wfd_connected_peer_info_s * list, in
 	for (i = 0; i < num; i++)
 	{
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "== Peer index : %d ==\n", i);
-		WFD_CLIENT_LOG(WFD_LOG_LOW, "ssid : %s\n", list[i].ssid);
+		WFD_CLIENT_LOG(WFD_LOG_LOW, "device_name : %s\n", list[i].device_name);
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "Device MAC : " MACSTR "\n",
 					   MAC2STR(list[i].mac_address));
 		WFD_CLIENT_LOG(WFD_LOG_LOW, "Interface MAC : " MACSTR "\n",
@@ -1661,7 +1661,7 @@ int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb callback
 				{
 					peer_list = (wifi_direct_discovered_peer_info_s *) calloc(1, sizeof(wifi_direct_discovered_peer_info_s));
 					peer_list->is_group_owner = buff[i].is_group_owner;
-					peer_list->ssid = strdup(buff[i].ssid);
+					peer_list->device_name = strdup(buff[i].device_name);
 					peer_list->mac_address = (char *) calloc(1, 18);
 					snprintf(peer_list->mac_address, 18, MACSTR, MAC2STR(buff[i].mac_address));
 					peer_list->channel = buff[i].channel;
@@ -2215,7 +2215,7 @@ int wifi_direct_foreach_connected_peers(wifi_direct_connected_peer_cb callback, 
 				for (i = 0; i < num; i++)
 				{
 					peer_list = (wifi_direct_connected_peer_info_s *) calloc(1, sizeof(wifi_direct_connected_peer_info_s));
-					peer_list->ssid = strdup(buff[i].ssid);
+					peer_list->device_name = strdup(buff[i].device_name);
 					peer_list->ip_address= (char *) calloc(1, 16);
 					snprintf(peer_list->ip_address, 16, IPSTR, IP2STR(buff[i].ip_address));
 					peer_list->mac_address = (char *) calloc(1, 18);
@@ -4064,6 +4064,7 @@ int wifi_direct_get_wps_type(wifi_direct_wps_type_e* type)
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
+/* DPRECATED */
 int wifi_direct_set_ssid(const char *ssid)
 {
 	wifi_direct_client_info_s *client_info = __wfd_get_control();
@@ -4171,8 +4172,6 @@ int wifi_direct_set_ssid(const char *ssid)
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
-
-
 int wifi_direct_get_ssid(char **ssid)
 {
 	wifi_direct_client_info_s *client_info = __wfd_get_control();
@@ -4265,6 +4264,220 @@ int wifi_direct_get_ssid(char **ssid)
 				*ssid = temp_ssid;
 			}
 
+		}
+		else
+		{
+			WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! Invalid resp cmd = %d\n",
+						   rsp.cmd);
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+	}
+
+	__WFD_CLIENT_FUNC_END__;
+
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+int wifi_direct_get_device_name(char** device_name)
+{
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+
+	__WFD_CLIENT_FUNC_START__;
+
+	if (NULL == device_name)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "NULL Param [device_name]!\n");
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	if ((client_info->is_registered == false)
+		|| (client_info->client_id == WFD_INVALID_ID))
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Client is NOT registered.\n");
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	char la_device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1] = { 0, };
+
+	int status = WIFI_DIRECT_ERROR_NONE;
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_GET_DEVICE_NAME;
+	req.client_id = client_info->client_id;
+
+	status =
+		__wfd_client_send_request(client_info->sync_sockfd, &req,
+								  sizeof(wifi_direct_client_request_s));
+	if (status != WIFI_DIRECT_ERROR_NONE)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR,
+					   "Error!!! writing to socket, Errno = %s\n",
+					   strerror(errno));
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! [%s]\n",
+					   __wfd_print_error(status));
+		client_info->sync_sockfd = -1;
+		__wfd_reset_control();
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+
+	if ((status =
+		 __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
+								  sizeof(wifi_direct_client_response_s))) <= 0)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR,
+					   "Error!!! reading socket, status = %d errno = %s\n",
+					   status, strerror(errno));
+		client_info->sync_sockfd = -1;
+		__wfd_reset_control();
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+	else
+	{
+		if (rsp.cmd == WIFI_DIRECT_CMD_GET_DEVICE_NAME)
+		{
+			if (rsp.result != WIFI_DIRECT_ERROR_NONE)
+			{
+				WFD_CLIENT_LOG(WFD_LOG_LOW, "Error!!! Result received = %d \n",
+							   rsp.result);
+				WFD_CLIENT_LOG(WFD_LOG_LOW, "Error!!! [%s]\n",
+							   __wfd_print_error(rsp.result));
+				__WFD_CLIENT_FUNC_END__;
+				return rsp.result;
+			}
+			else
+			{
+				WFD_CLIENT_LOG(WFD_LOG_LOW,
+							   "wifi_direct_get_device_name() %s SUCCESS \n",
+							   rsp.param2);
+				strncpy(la_device_name, rsp.param2, WIFI_DIRECT_MAX_DEVICE_NAME_LEN);
+
+				char *temp_device_name = NULL;
+				temp_device_name = strdup(la_device_name);
+				if (NULL == temp_device_name)
+				{
+					WFD_CLIENT_LOG(WFD_LOG_ERROR, "Failed to allocate memory for device name\n");
+					return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
+				}
+
+				*device_name = temp_device_name;
+			}
+
+		}
+		else
+		{
+			WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! Invalid resp cmd = %d\n",
+						   rsp.cmd);
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+	}
+
+	__WFD_CLIENT_FUNC_END__;
+
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+
+int wifi_direct_set_device_name(const char *device_name)
+{
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+
+	__WFD_CLIENT_FUNC_START__;
+
+	if ((client_info->is_registered == false)
+		|| (client_info->client_id == WFD_INVALID_ID))
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Client is NOT registered.\n");
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (NULL == device_name)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "NULL Param [device_name]!\n");
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	WFD_CLIENT_LOG(WFD_LOG_ERROR, "device_name = [%s]\n", device_name);
+
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+
+	int status = WIFI_DIRECT_ERROR_NONE;
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_SET_DEVICE_NAME;
+	req.client_id = client_info->client_id;
+
+	status =
+		__wfd_client_send_request(client_info->sync_sockfd, &req,
+								  sizeof(wifi_direct_client_request_s));
+	if (status != WIFI_DIRECT_ERROR_NONE)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR,
+					   "Error!!! writing to socket, Errno = %s\n",
+					   strerror(errno));
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! [%s]\n",
+					   __wfd_print_error(status));
+		client_info->sync_sockfd = -1;
+		__wfd_reset_control();
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+
+	WFD_CLIENT_LOG(WFD_LOG_LOW, "writing msg hdr is success!\n");
+
+	status =
+		__wfd_client_send_request(client_info->sync_sockfd, device_name,
+								  WIFI_DIRECT_MAX_DEVICE_NAME_LEN);
+	if (status != WIFI_DIRECT_ERROR_NONE)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR,
+					   "Error!!! writing to socket, Errno = %s\n",
+					   strerror(errno));
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! [%s]\n",
+					   __wfd_print_error(status));
+		client_info->sync_sockfd = -1;
+		__wfd_reset_control();
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+
+	if ((status =
+		 __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
+								  sizeof(wifi_direct_client_response_s))) <= 0)
+	{
+		WFD_CLIENT_LOG(WFD_LOG_ERROR,
+					   "Error!!! reading socket, status = %d errno = %s\n",
+					   status, strerror(errno));
+		client_info->sync_sockfd = -1;
+		__wfd_reset_control();
+		__WFD_CLIENT_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+	else
+	{
+		if (rsp.cmd == WIFI_DIRECT_CMD_SET_DEVICE_NAME)
+		{
+			if (rsp.result != WIFI_DIRECT_ERROR_NONE)
+			{
+				WFD_CLIENT_LOG(WFD_LOG_ERROR,
+							   "Error!!! Result received = %d \n", rsp.result);
+				WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! [%s]\n",
+							   __wfd_print_error(rsp.result));
+				__WFD_CLIENT_FUNC_END__;
+				return rsp.result;
+			}
 		}
 		else
 		{
@@ -5314,8 +5527,7 @@ int wifi_direct_is_autoconnection_mode(bool* mode)
 }
 
 
-
-int wifi_direct_activate_persistent_group(void)
+int wifi_direct_set_persistent_group_enabled(bool enabled)
 {
 	wifi_direct_client_info_s *client_info = __wfd_get_control();
 
@@ -5337,7 +5549,11 @@ int wifi_direct_activate_persistent_group(void)
 	memset(&req, 0, sizeof(wifi_direct_client_request_s));
 	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
 
-	req.cmd = WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP;
+	if (enabled == true)
+		req.cmd = WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP;
+	else
+		req.cmd = WIFI_DIRECT_CMD_DEACTIVATE_PERSISTENT_GROUP;
+
 	req.client_id = client_info->client_id;
 
 	status =
@@ -5370,7 +5586,8 @@ int wifi_direct_activate_persistent_group(void)
 	}
 	else
 	{
-		if (rsp.cmd == WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP)
+		if (rsp.cmd == WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP
+			|| rsp.cmd == WIFI_DIRECT_CMD_DEACTIVATE_PERSISTENT_GROUP)
 		{
 			if (rsp.result != WIFI_DIRECT_ERROR_NONE)
 			{
@@ -5384,7 +5601,7 @@ int wifi_direct_activate_persistent_group(void)
 			else
 			{
 				WFD_CLIENT_LOG(WFD_LOG_LOW,
-							   "wifi_direct_activate_persistent_group() SUCCESS \n");
+							   "wifi_direct_set_persistent_group_enabled() SUCCESS \n");
 			}
 		}
 		else
@@ -5400,100 +5617,16 @@ int wifi_direct_activate_persistent_group(void)
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
-int wifi_direct_deactivate_persistent_group(void)
+
+int wifi_direct_is_persistent_group_enabled(bool* enabled)
 {
 	wifi_direct_client_info_s *client_info = __wfd_get_control();
 
 	__WFD_CLIENT_FUNC_START__;
 
-	if ((client_info->is_registered == false)
-		|| (client_info->client_id == WFD_INVALID_ID))
+	if (enabled == NULL)
 	{
-		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Client is NOT registered.\n");
-		__WFD_CLIENT_FUNC_END__;
-		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
-	}
-
-	wifi_direct_client_request_s req;
-	wifi_direct_client_response_s rsp;
-
-	int status = WIFI_DIRECT_ERROR_NONE;
-
-	memset(&req, 0, sizeof(wifi_direct_client_request_s));
-	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
-
-	req.cmd = WIFI_DIRECT_CMD_DEACTIVATE_PERSISTENT_GROUP;
-	req.client_id = client_info->client_id;
-
-	status =
-		__wfd_client_send_request(client_info->sync_sockfd, &req,
-								  sizeof(wifi_direct_client_request_s));
-	if (status != WIFI_DIRECT_ERROR_NONE)
-	{
-		WFD_CLIENT_LOG(WFD_LOG_ERROR,
-					   "Error!!! writing to socket, Errno = %s\n",
-					   strerror(errno));
-		WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! [%s]\n",
-					   __wfd_print_error(status));
-		client_info->sync_sockfd = -1;
-		__wfd_reset_control();
-		__WFD_CLIENT_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-
-	if ((status =
-		 __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
-								  sizeof(wifi_direct_client_response_s))) <= 0)
-	{
-		WFD_CLIENT_LOG(WFD_LOG_ERROR,
-					   "Error!!! reading socket, status = %d errno = %s\n",
-					   status, strerror(errno));
-		client_info->sync_sockfd = -1;
-		__wfd_reset_control();
-		__WFD_CLIENT_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-	else
-	{
-		if (rsp.cmd == WIFI_DIRECT_CMD_DEACTIVATE_PERSISTENT_GROUP)
-		{
-			if (rsp.result != WIFI_DIRECT_ERROR_NONE)
-			{
-				WFD_CLIENT_LOG(WFD_LOG_LOW, "Error!!! Result received = %d \n",
-							   rsp.result);
-				WFD_CLIENT_LOG(WFD_LOG_LOW, "Error!!! [%s]\n",
-							   __wfd_print_error(rsp.result));
-				__WFD_CLIENT_FUNC_END__;
-				return rsp.result;
-			}
-			else
-			{
-				WFD_CLIENT_LOG(WFD_LOG_LOW,
-							   "wifi_direct_deactivate_persistent_group() SUCCESS \n");
-			}
-		}
-		else
-		{
-			WFD_CLIENT_LOG(WFD_LOG_ERROR, "Error!!! Invalid resp cmd = %d\n",
-						   rsp.cmd);
-			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
-		}
-	}
-
-	__WFD_CLIENT_FUNC_END__;
-
-	return WIFI_DIRECT_ERROR_NONE;
-}
-
-int wifi_direct_is_persistent_group_activated(bool* activated)
-{
-	wifi_direct_client_info_s *client_info = __wfd_get_control();
-
-	__WFD_CLIENT_FUNC_START__;
-
-	if (activated == NULL)
-	{
-		WFD_CLIENT_LOG(WFD_LOG_ERROR, "NULL Param [activated]!\n");
+		WFD_CLIENT_LOG(WFD_LOG_ERROR, "NULL Param [enabled]!\n");
 		__WFD_CLIENT_FUNC_END__;
 		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
 	}
@@ -5561,9 +5694,9 @@ int wifi_direct_is_persistent_group_activated(bool* activated)
 			else
 			{
 				WFD_CLIENT_LOG(WFD_LOG_LOW,
-							   "wifi_direct_is_persistent_group_activated() %s SUCCESS \n",
+							   "wifi_direct_is_persistent_group_enabled() %s SUCCESS \n",
 							   rsp.param2);
-				*activated = (bool) rsp.param1;
+				*enabled = (bool) rsp.param1;
 			}
 		}
 		else
@@ -5577,8 +5710,8 @@ int wifi_direct_is_persistent_group_activated(bool* activated)
 	__WFD_CLIENT_FUNC_END__;
 
 	return WIFI_DIRECT_ERROR_NONE;
-}
 
+}
 
 int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb callback, void* user_data)
 {

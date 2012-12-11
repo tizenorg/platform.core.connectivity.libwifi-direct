@@ -213,7 +213,7 @@ typedef enum {
  */
 typedef struct
 {
-	char* ssid;  /** Null-terminated device friendly name. */
+	char* device_name;  /** Null-terminated device friendly name. */
 	char *mac_address;  /** Device's P2P Device Address */
 	char* interface_address;  /** Device's P2P Interface Address.  Valid only if device is a P2P GO. */    
 	int channel;  /** Channel the device is listening on. */
@@ -224,6 +224,7 @@ typedef struct
 	wifi_direct_secondary_device_type_e secondary_device_type;  /** Sub category of device */
 	int supported_wps_types;  /** The list of supported WPS type. \n
 	The OR operation on #wifi_direct_wps_type_e can be used like #WIFI_DIRECT_WPS_TYPE_PBC | #WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY */
+	char* ssid;  /**< Service set identifier - DEPRECATED */
 } wifi_direct_discovered_peer_info_s;
 
 
@@ -233,13 +234,14 @@ typedef struct
  */
 typedef struct
 {
-	char* ssid;  /** Device friendly name. */
+	char* device_name;  /** Device friendly name. */
 	char* ip_address;  /**< The IP address */
 	char* mac_address;  /** Device's P2P Device Address */
 	char* interface_address;  /** Device's P2P Interface Address */
 	bool p2p_supported;  /* whether peer is a P2P device */
 	wifi_direct_primary_device_type_e	primary_device_type;  /* primary category of device */
 	int channel;  /* Operating channel */
+	char* ssid;  /**< Service set identifier - DEPRECATED */
 } wifi_direct_connected_peer_info_s;
 
 /**
@@ -1633,6 +1635,43 @@ int wifi_direct_is_autonomous_group(bool * is_autonomous_group);
 int wifi_direct_set_ssid(const char *ssid);
 
 
+/**
+ * @brief Sets the friendly name of local device.
+ * @details This device name is shown to other devices during device discovery.
+ * @remarks The name set by you is only valid during activated state.
+ * After Wi-Fi Direct is deactivated, this name will be as the phone name.
+ * @param[in] device_name  The name to local device
+ * @return 0 on success, otherwise a negative error value.
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+ * @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitteds
+ * @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+ * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+ * @pre Wi-Fi Direct must be activated by wifi_direct_activate().
+ * @see wifi_direct_activate()
+ * @see wifi_direct_get_device_name()
+ */
+int wifi_direct_set_device_name(const char* device_name);
+
+/**
+ * @brief Gets the name of local device.
+ * @remarks @a device_name must be released with free() by you.
+ * @param[out] device_name  The name to local device
+ * @return 0 on success, otherwise a negative error value.
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+ * @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+ * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+ * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
+ * @see wifi_direct_initialize()
+ * @see wifi_direct_set_device_name()
+ */
+int wifi_direct_get_device_name(char** device_name);
+
 /*****************************************************************************************/
 /* wifi_direct_get_ssid API function prototype
  * int wifi_direct_get_ssid(char** ssid)
@@ -2472,9 +2511,10 @@ int wifi_direct_set_autoconnection_mode(bool mode);
 
 int wifi_direct_is_autoconnection_mode(bool* mode);
 
-
-/**
-* @brief Activates the persistent group.
+/**  
+* @brief Enables the persistent group.
+* @details If @a enabled is true, then P2P persisten group will be used when creating a group and establishing a connection.
+* @param[in] enabled  The status of persistent group: (@c true = enabled, @c false = disabled)
 * @retval #WIFI_DIRECT_ERROR_NONE  Successful
 * @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
 * @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
@@ -2483,29 +2523,13 @@ int wifi_direct_is_autoconnection_mode(bool* mode);
 * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
-* @see wifi_direct_deactivate_persistent_group()
-* @see wifi_direct_is_persistent_group_activated()
+* @see wifi_direct_is_persistent_group_enabled()
 */
-int wifi_direct_activate_persistent_group(void);
+int wifi_direct_set_persistent_group_enabled(bool enabled);
 
 /**
-* @brief Deactivates the persistent group.
-* @retval #WIFI_DIRECT_ERROR_NONE  Successful
-* @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
-* @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
-* @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
-* @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
-* @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
-* @pre The persistent group of Wi-Fi Direct service must be initialized by wifi_direct_initialize().
-* @see wifi_direct_initialize()
-* @see wifi_direct_activate_persistent_group()
-* @see wifi_direct_is_persistent_group_activated()
-*/
-int wifi_direct_deactivate_persistent_group(void);
-
-/**
-* @brief Checks whether the persistent group is activated or not.
-* @param[in] activated  The status of persistent group: (@c true = activated, @c false = deactivated)
+* @brief Checks whether the persistent group is enabled or disabled.
+* @param[out] enabled  The status of persistent group: (@c true = enabled, @c false = disabled)
 * @retval #WIFI_DIRECT_ERROR_NONE  Successful
 * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
 * @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
@@ -2515,9 +2539,10 @@ int wifi_direct_deactivate_persistent_group(void);
 * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
-* @see wifi_direct_activate_persistent_group()
+* @see wifi_direct_set_persistent_group_enabled()
 */
-int wifi_direct_is_persistent_group_activated(bool* activated);
+int wifi_direct_is_persistent_group_enabled(bool* enabled);
+
 
 /**
 * @brief Called when you get the persistent groups repeatedly.

@@ -58,6 +58,7 @@ typedef unsigned int ipv4_addr_t;
 #define IPSTR "%d.%d.%d.%d"
 
 #define WIFI_DIRECT_MAX_SSID_LEN 32
+#define WIFI_DIRECT_MAX_DEVICE_NAME_LEN 32
 #define WIFI_DIRECT_WPS_PIN_LEN 8
 #define WIFI_DIRECT_MAC_ADDRESS_INFO_FILE "/opt/etc/.mac.info"
 
@@ -116,7 +117,9 @@ typedef enum
 	WIFI_DIRECT_CMD_IS_PERSISTENT_GROUP,
 	WIFI_DIRECT_CMD_GET_PERSISTENT_GROUP_INFO,
 	WIFI_DIRECT_CMD_REMOVE_PERSISTENT_GROUP,
-	
+	WIFI_DIRECT_CMD_GET_DEVICE_NAME,
+	WIFI_DIRECT_CMD_SET_DEVICE_NAME,
+
 	WIFI_DIRECT_CMD_SET_OEM_LOGLEVEL,
 
 	WIFI_DIRECT_CMD_MAX
@@ -158,7 +161,7 @@ typedef enum
  */
 typedef struct
 {
-	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
+	char device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1];
 	int channel;
 	wifi_direct_wps_type_e wps_config;
 	int max_clients;
@@ -178,7 +181,7 @@ typedef struct
 typedef struct
 {
 	bool is_group_owner;
-	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
+	char device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1];
 	unsigned char mac_address[6];
 	int channel;
 	bool is_connected;
@@ -198,7 +201,7 @@ typedef struct
  */
 typedef struct
 {
-	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
+	char device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1];
 	unsigned char ip_address[4];
 	unsigned char mac_address[6];
 	unsigned char intf_mac_address[6];
@@ -210,6 +213,7 @@ typedef struct
 
 typedef struct
 {
+	int network_id;
 	char ssid[WIFI_DIRECT_MAX_SSID_LEN + 1];
 	unsigned char go_mac_address[6];
 } wfd_persistent_group_info_s;
