@@ -4478,7 +4478,7 @@ int wifi_direct_get_subnet_mask(char** subnet_mask)
 	}
 	else
 	{
-		WDC_LOGD(VCONFKEY_SUBNET_MASK(%s) : %s\n", VCONFKEY_SUBNET_MASK, get_str);
+		WDC_LOGD("VCONFKEY_SUBNET_MASK(%s) : %s", VCONFKEY_SUBNET_MASK, get_str);
 
 		char *temp_subnetmask = NULL;
 		temp_subnetmask = strdup(get_str);
