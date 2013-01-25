@@ -1,6 +1,6 @@
 Name:       libwifi-direct
 Summary:    wifi direct library (Shared Library)
-Version:    0.3.2
+Version:    0.3.3
 Release:    1
 Group:      TO_BE_FILLED
 License:    Apache-2.0
@@ -45,7 +45,7 @@ rm -rf %{buildroot}
 %__strip %{buildroot}%{_libdir}/libwifi-direct.so.0.0
 
 mkdir -p %{buildroot}/usr/share/license
-cp %{_builddir}/%{buildsubdir}/LICENSE %{buildroot}/usr/share/license/%{name}
+cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{name}
 
 %post
 

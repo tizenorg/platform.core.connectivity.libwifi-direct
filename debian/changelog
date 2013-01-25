@@ -1,3 +1,11 @@
+libwifi-direct (0.3.3) unstable; urgency=low
+
+  * Package Update
+  * Git : rsa/framework/connectivity/libwifi-direct
+  * Tag : libwifi-direct_0.3.3
+
+ -- Gibyoung Kim <lastkgb.kim@samsung.com>  Fri, 25 Jan 2013 21:09:15 +0900
+
 libwifi-direct (0.3.2) unstable; urgency=low
 
   * DLog macro is changed
