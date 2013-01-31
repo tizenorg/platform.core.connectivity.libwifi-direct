@@ -1,26 +1,22 @@
 Name:       libwifi-direct
-Summary:    wifi direct library (Shared Library)
+Summary:    Wifi direct library (Shared Library)
 Version:    0.3.4
 Release:    1
-Group:      TO_BE_FILLED
+Group:      Connectivity/Wireless
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  pkgconfig(dbus-glib-1)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(vconf)
-
 BuildRequires:  cmake
 BuildRequires:  gettext-devel
-
-#%define debug_package %{nil}  
 
 %description
 wifi direct library (Shared Library)
 
-
 %package devel 
 Summary:    wifi direct library (Shared Library) (Developement)
-Group:      TO_BE_FILLED 
+Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
 
 %description devel
@@ -36,21 +32,14 @@ export ARCH=i586
 %endif
 
 %build
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
-#make %{?jobs:-j%jobs}
+%cmake .
 
 %install
-rm -rf %{buildroot}
 %make_install
 %__strip %{buildroot}%{_libdir}/libwifi-direct.so.0.0
 
 mkdir -p %{buildroot}/usr/share/license
 cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{name}
-
-%post
-
-%postun
-
 
 %files
 %manifest libwifi-direct.manifest
@@ -65,4 +54,3 @@ cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{na
 %{_libdir}/pkgconfig/wifi-direct.pc
 %{_includedir}/wifi-direct/wifi-direct.h
 %{_includedir}/wifi-direct/wifi-direct-internal.h
-
