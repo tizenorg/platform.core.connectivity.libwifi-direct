@@ -1,3 +1,11 @@
+libwifi-direct (0.3.4) unstable; urgency=low
+
+  * Fix bug of invitation behavior
+  * Git : rsa/framework/connectivity/libwifi-direct
+  * Tag : libwifi-direct_0.3.4
+
+ -- Gibyoung Kim <lastkgb.kim@samsung.com>  Sun, 3 Jan 2013 02:53:04 +0900
+
 libwifi-direct (0.3.3) unstable; urgency=low
 
   * Package Update

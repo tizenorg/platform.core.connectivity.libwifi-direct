@@ -154,6 +154,7 @@ typedef enum
 	WIFI_DIRECT_CLI_EVENT_GROUP_DESTROY_RSP,				/**< */
 
 	WIFI_DIRECT_CLI_EVENT_IP_LEASED_IND,				/**< */
+	WIFI_DIRECT_CLI_EVENT_INVITATION_REQ,
 } wfd_client_event_e;
 
 /**

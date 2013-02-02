@@ -108,6 +108,7 @@ typedef enum
 	WIFI_DIRECT_DISCONNECTION_IND,			/**< */
 	WIFI_DIRECT_GROUP_CREATED,			/**< */
 	WIFI_DIRECT_GROUP_DESTROYED,			/**< */
+	WIFI_DIRECT_INVITATION_REQ,
 } wifi_direct_connection_state_e;
 
 /**

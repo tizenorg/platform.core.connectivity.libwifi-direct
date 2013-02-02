@@ -283,6 +283,9 @@ static int __wfd_convert_client_event(wfd_client_event_e event)
 	case WIFI_DIRECT_CLI_EVENT_GROUP_DESTROY_RSP:
 		return WIFI_DIRECT_GROUP_DESTROYED;
 		break;
+	case WIFI_DIRECT_CLI_EVENT_INVITATION_REQ:
+		return WIFI_DIRECT_INVITATION_REQ;
+		break;
 	default:
 		WDC_LOGE("Invalid event : [%d]", event);
 		break;
@@ -365,6 +368,7 @@ static gboolean __wfd_client_process_event(GIOChannel * source,
 	case WIFI_DIRECT_CLI_EVENT_DISASSOCIATION_IND:
 	case WIFI_DIRECT_CLI_EVENT_GROUP_CREATE_RSP:
 	case WIFI_DIRECT_CLI_EVENT_GROUP_DESTROY_RSP:
+	case WIFI_DIRECT_CLI_EVENT_INVITATION_REQ:
 		if (client->connection_cb != NULL)
 			client->connection_cb(error,
 					  (wifi_direct_connection_state_e)
@@ -2027,24 +2031,20 @@ int wifi_direct_foreach_connected_peers(wifi_direct_connected_peer_cb callback, 
 	req.cmd = WIFI_DIRECT_CMD_GET_CONNECTED_PEERS_INFO;
 	req.client_id = client_info->client_id;
 
-	status =
-		__wfd_client_send_request(client_info->sync_sockfd, &req,
+	status = __wfd_client_send_request(client_info->sync_sockfd, &req,
 								  sizeof(wifi_direct_client_request_s));
 	if (status != WIFI_DIRECT_ERROR_NONE)
 	{
-		WDC_LOGE("Error!!! writing to socket, Errno = %s\n",
-					   strerror(errno));
-		WDC_LOGE("Error!!! [%s]\n",
-					   __wfd_print_error(status));
+		WDC_LOGE("Error!!! writing to socket, Errno = %s\n", strerror(errno));
+		WDC_LOGE("Error!!! [%s]\n", __wfd_print_error(status));
 		client_info->sync_sockfd = -1;
 		__wfd_reset_control();
 		__WDC_LOG_FUNC_END__;
 		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
 	}
 
-	if ((status =
-		 __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
-								  sizeof(wifi_direct_client_response_s))) <= 0)
+	if ((status = __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
+										sizeof(wifi_direct_client_response_s))) <= 0)
 	{
 		WDC_LOGE("Error!!! reading socket, status = %d errno = %s\n",
 					   status, strerror(errno));
