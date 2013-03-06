@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2000 - 2012 Samsung Electronics Co., Ltd. All rights reserved.
  *
- * Contact: Sungsik Jang <sungsik.jang@samsung.com>, Dongwook Lee <dwmax.lee@samsung.com> 
+ * Contact: Sungsik Jang <sungsik.jang@samsung.com>, Dongwook Lee <dwmax.lee@samsung.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@
  * 	Macros and Typedefs
  *****************************************************************************/
 
-
 /*****************************************************************************
  * 	Global Variables
  *****************************************************************************/
@@ -82,7 +81,7 @@ pid_t gettid(void)
 	return syscall(__NR_gettid);
 }
 #else
-#error "__NR_gettid is not defined, please include linux/unistd.h "
+#error "__NR_gettid is not defined, please include linux/unistd.h"
 #endif
 
 static wifi_direct_client_info_s *__wfd_get_control()
@@ -790,16 +789,19 @@ int wifi_direct_initialize(void)
 		{
 			WDC_LOGE("Error!!! writing to socket, Errno = %s\n", strerror(errno));
 			WDC_LOGE("Error!!! [%s]\n", __wfd_print_error(status));
-			close(sockfd);
+			if (sockfd > 0)
+				close(sockfd);
 			__WDC_LOG_FUNC_END__;
 			return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
 		}
 
 		/*Get client id */
-		if ((status = __wfd_client_read_socket(sockfd, (char *) &resp, 
+		if ((status = __wfd_client_read_socket(sockfd, (char *) &resp,
 			sizeof(wifi_direct_client_response_s))) <= 0)
 		{
 			WDC_LOGE("Error!!! reading socket, status = %d errno = %s\n", status, strerror(errno));
+			if (sockfd > 0)
+				close(sockfd);
 			__WDC_LOG_FUNC_END__;
 			return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
 		}
@@ -819,20 +821,21 @@ int wifi_direct_initialize(void)
 				}
 				else
 				{
-					WDC_LOGE("Error!!! Client Register = %d\n",
-								   resp.result);
-					close(sockfd);
+					WDC_LOGE("Error!!! Client Register = %d\n", resp.result);
+					if (sockfd > 0)
+						close(sockfd);
 					__WDC_LOG_FUNC_END__;
 					return resp.result;
 				}
 
 				int async_sockfd = -1;
 				/* Send request for establishing async communication channel */
-				if ((async_sockfd =
-					 __wfd_client_async_event_init(client_info->client_id)) ==
-					WIFI_DIRECT_ERROR_COMMUNICATION_FAILED)
+				async_sockfd = __wfd_client_async_event_init(client_info->client_id);
+				if (async_sockfd == WIFI_DIRECT_ERROR_COMMUNICATION_FAILED)
 				{
 					WDC_LOGE("Error!!! creating Async Socket \n");
+					if (sockfd > 0)
+						close(sockfd);
 					__wfd_reset_control();
 					__WDC_LOG_FUNC_END__;
 					return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
@@ -844,7 +847,8 @@ int wifi_direct_initialize(void)
 			{
 				WDC_LOGE("Error!!! Invalid Response received from wfd Server. cmd = %d \n",
 							   resp.cmd);
-				close(sockfd);
+				if (sockfd > 0)
+					close(sockfd);
 				__WDC_LOG_FUNC_END__;
 				return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
 			}
@@ -872,7 +876,6 @@ int wifi_direct_initialize(void)
 	client_info->user_data_for_cb_connection = NULL;
 
 	__WDC_LOG_FUNC_END__;
-
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -2099,30 +2102,32 @@ int wifi_direct_foreach_connected_peers(wifi_direct_connected_peer_cb callback, 
 						WDC_LOGE("socket read error.\n");
 						return WIFI_DIRECT_ERROR_OPERATION_FAILED;
 					}
-				}
 
-				__wfd_client_print_connected_peer_info(buff, num);
+					__wfd_client_print_connected_peer_info(buff, num);
 
-				WDC_LOGD("wifi_direct_foreach_connected_peers() SUCCESS\n");
+					WDC_LOGD("wifi_direct_foreach_connected_peers() SUCCESS\n");
 
-				wifi_direct_connected_peer_info_s *peer_list;
+					wifi_direct_connected_peer_info_s *peer_list = NULL;
 
-				for (i = 0; i < num; i++)
-				{
-					peer_list = (wifi_direct_connected_peer_info_s *) calloc(1, sizeof(wifi_direct_connected_peer_info_s));
-					peer_list->device_name = strdup(buff[i].device_name);
-					peer_list->ip_address= (char *) calloc(1, 16);
-					snprintf(peer_list->ip_address, 16, IPSTR, IP2STR(buff[i].ip_address));
-					peer_list->mac_address = (char *) calloc(1, 18);
-					snprintf(peer_list->mac_address, 18, MACSTR, MAC2STR(buff[i].mac_address));
-					peer_list->interface_address = (char *) calloc(1, 18);
-					snprintf(peer_list->interface_address, 18, MACSTR, MAC2STR(buff[i].intf_mac_address));
-					peer_list->p2p_supported = buff[i].is_p2p;
-					peer_list->primary_device_type = buff[i].category;
-					peer_list->channel = buff[i].channel;
-					
-					if (!callback(peer_list, user_data))
-						break;
+					for (i = 0; i < num; i++)
+					{
+						peer_list = (wifi_direct_connected_peer_info_s *) calloc(1, sizeof(wifi_direct_connected_peer_info_s));
+						peer_list->device_name = strdup(buff[i].device_name);
+						peer_list->ip_address= (char *) calloc(1, 16);
+						snprintf(peer_list->ip_address, 16, IPSTR, IP2STR(buff[i].ip_address));
+						peer_list->mac_address = (char *) calloc(1, 18);
+						snprintf(peer_list->mac_address, 18, MACSTR, MAC2STR(buff[i].mac_address));
+						peer_list->interface_address = (char *) calloc(1, 18);
+						snprintf(peer_list->interface_address, 18, MACSTR, MAC2STR(buff[i].intf_mac_address));
+						peer_list->p2p_supported = buff[i].is_p2p;
+						peer_list->primary_device_type = buff[i].category;
+						peer_list->channel = buff[i].channel;
+
+						if (!callback(peer_list, user_data))
+							break;
+					}
+				} else {
+					callback(NULL, user_data);
 				}
 
 				if (NULL != buff)
@@ -3598,7 +3603,7 @@ int wifi_direct_foreach_supported_wps_types(wifi_direct_supported_wps_type_cb ca
 
 				if ((result == true) && (wps_mode & WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY))
 					result = callback(WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY, user_data);
-					
+
 
 				if ((result == true) && (wps_mode & WIFI_DIRECT_WPS_TYPE_PIN_KEYPAD))
 					result = callback(WIFI_DIRECT_WPS_TYPE_PIN_KEYPAD, user_data);
@@ -4638,7 +4643,7 @@ int wifi_direct_get_mac_address(char **mac_address)
 					WDC_LOGE("Failed to allocate memory for MAC address");
 					return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
 				}
-    
+
 				sprintf(temp_mac, MACSTR, MAC2STR(la_mac_addr));
 
 				*mac_address = temp_mac;
@@ -4660,8 +4665,9 @@ int wifi_direct_get_mac_address(char **mac_address)
 	unsigned char la_mac_addr[6];
 
 	memset(mac_info, 0, sizeof(mac_info));
-	
-	if( (fd = open(WIFI_DIRECT_MAC_ADDRESS_INFO_FILE, O_RDONLY)) == -1)
+
+	fd = open(WIFI_DIRECT_MAC_ADDRESS_INFO_FILE, O_RDONLY);
+	if (fd == -1)
 	{
 		WDC_LOGE("[.mac.info] file open failed.");
 		__WDC_LOG_FUNC_END__;
@@ -4672,6 +4678,8 @@ int wifi_direct_get_mac_address(char **mac_address)
 	if(n < 0)
 	{
 		WDC_LOGE("[.mac.info] file read failed.");
+		if (fd > 0)
+			close(fd);
 		__WDC_LOG_FUNC_END__;
 		return WIFI_DIRECT_ERROR_OPERATION_FAILED;
 	}
@@ -4681,17 +4689,14 @@ int wifi_direct_get_mac_address(char **mac_address)
 	memset(la_mac_addr, 0, sizeof(la_mac_addr));
 	macaddr_atoe(mac_info, la_mac_addr);
 	la_mac_addr[0] = la_mac_addr[0] | 0x02;
-	la_mac_addr[1] = la_mac_addr[1];
-	la_mac_addr[2] = la_mac_addr[2];
-	la_mac_addr[3] = la_mac_addr[3];
-	la_mac_addr[4] = la_mac_addr[4];
-	la_mac_addr[5] = la_mac_addr[5];
 
 	char *temp_mac = NULL;
 	temp_mac = (char *) calloc(1, 18);
 	if (NULL == temp_mac)
 	{
 		WDC_LOGE("Failed to allocate memory for MAC address");
+		if (fd > 0)
+			close(fd);
 		return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -4699,11 +4704,13 @@ int wifi_direct_get_mac_address(char **mac_address)
 	snprintf(temp_mac, 18, MACSTR, MAC2STR(la_mac_addr));
 
 	*mac_address = temp_mac;
-	
+
 #endif
 
-	__WDC_LOG_FUNC_END__;
+	if (fd > 0)
+		close(fd);
 
+	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -4782,7 +4789,7 @@ int wifi_direct_get_state(wifi_direct_state_e * state)
 				/* for CAPI : there is no WIFI_DIRECT_STATE_GROUP_OWNER type in CAPI */
 				if(*state == WIFI_DIRECT_STATE_GROUP_OWNER)
 					*state = WIFI_DIRECT_STATE_CONNECTED;
-				
+
 			}
 		}
 		else

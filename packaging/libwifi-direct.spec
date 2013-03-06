@@ -12,8 +12,6 @@ BuildRequires:  pkgconfig(vconf)
 BuildRequires:  cmake
 BuildRequires:  gettext-devel
 
-#%define debug_package %{nil}  
-
 %description
 wifi direct library (Shared Library)
 
@@ -42,7 +40,7 @@ cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
 %install
 rm -rf %{buildroot}
 %make_install
-%__strip %{buildroot}%{_libdir}/libwifi-direct.so.0.0
+#%__strip %{buildroot}%{_libdir}/libwifi-direct.so.0.0
 
 mkdir -p %{buildroot}/usr/share/license
 cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{name}

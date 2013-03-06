@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2000 - 2012 Samsung Electronics Co., Ltd. All rights reserved.
  *
- * Contact: Sungsik Jang <sungsik.jang@samsung.com>, Dongwook Lee <dwmax.lee@samsung.com> 
+ * Contact: Sungsik Jang <sungsik.jang@samsung.com>, Dongwook Lee <dwmax.lee@samsung.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,11 @@ extern "C"
 typedef enum
 {
 	WIFI_DIRECT_ERROR_NONE = 0,  /**< Successful */
-	WIFI_DIRECT_ERROR_OUT_OF_MEMORY = -ENOMEM,  /**< Out of memory */
-	WIFI_DIRECT_ERROR_NOT_PERMITTED = -EPERM,  /**< Operation not permitted */
-	WIFI_DIRECT_ERROR_INVALID_PARAMETER = -EINVAL,  /**< Invalid function parameter */
-	WIFI_DIRECT_ERROR_RESOURCE_BUSY = -EBUSY,  /**< Device or resource busy */
-	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT = -ETIMEDOUT,  /**< Connection timed out */
+	WIFI_DIRECT_ERROR_NOT_PERMITTED = -EPERM,  /** Operation not permitted(1) */
+	WIFI_DIRECT_ERROR_OUT_OF_MEMORY = -ENOMEM,  /** Out of memory(12) */
+	WIFI_DIRECT_ERROR_RESOURCE_BUSY = -EBUSY,  /** Device or resource busy(16) */
+	WIFI_DIRECT_ERROR_INVALID_PARAMETER = -EINVAL,  /** Invalid function parameter(22) */
+	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT = -ETIMEDOUT,  /**< Connection timed out(110) */
 	WIFI_DIRECT_ERROR_NOT_INITIALIZED = -0x00008000|0x0201,  /**< Not initialized */
 	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED = -0x00008000|0x0202,  /**< I/O error */
 	WIFI_DIRECT_ERROR_WIFI_USED = -0x00008000|0x0203,  /**< WiFi is being used */
@@ -214,18 +214,18 @@ typedef enum {
  */
 typedef struct
 {
-	char* device_name;  /** Null-terminated device friendly name. */
+	char *device_name;  /** Null-terminated device friendly name. */
 	char *mac_address;  /** Device's P2P Device Address */
-	char* interface_address;  /** Device's P2P Interface Address.  Valid only if device is a P2P GO. */    
+	char *interface_address;  /** Device's P2P Interface Address. Valid only if device is a P2P GO. */
 	int channel;  /** Channel the device is listening on. */
 	bool is_connected;  /** Is peer connected*/
-	bool is_group_owner;  /** Is an active P2P Group Owner */    
+	bool is_group_owner;  /** Is an active P2P Group Owner */
 	bool is_persistent_group_owner;  /** Is a stored Persistent GO */
 	wifi_direct_primary_device_type_e primary_device_type;  /** Primary category of device */
 	wifi_direct_secondary_device_type_e secondary_device_type;  /** Sub category of device */
 	int supported_wps_types;  /** The list of supported WPS type. \n
 	The OR operation on #wifi_direct_wps_type_e can be used like #WIFI_DIRECT_WPS_TYPE_PBC | #WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY */
-	char* ssid;  /**< Service set identifier - DEPRECATED */
+	char *ssid;  /**< Service set identifier - DEPRECATED */
 } wifi_direct_discovered_peer_info_s;
 
 
@@ -260,8 +260,7 @@ typedef struct
  *
  */
 typedef void (*wifi_direct_discovery_state_chagned_cb) (int error_code,
-														wifi_direct_discovery_state_e
-														discovery_state,
+														wifi_direct_discovery_state_e discovery_state,
 														void *user_data);
 
 /**
@@ -277,8 +276,7 @@ typedef void (*wifi_direct_discovery_state_chagned_cb) (int error_code,
  *
  */
 typedef void (*wifi_direct_device_state_changed_cb) (int error_code,
-													 wifi_direct_device_state_e
-													 device_state,
+													 wifi_direct_device_state_e device_state,
 													 void *user_data);
 
 /**
@@ -304,10 +302,8 @@ typedef void (*wifi_direct_device_state_changed_cb) (int error_code,
  *
  */
 typedef void (*wifi_direct_connection_state_changed_cb) (int error_code,
-														 wifi_direct_connection_state_e
-														 connection_state,
-														 const char
-														 *mac_address,
+														 wifi_direct_connection_state_e connection_state,
+														 const char *mac_address,
 														 void *user_data);
 
 
@@ -321,9 +317,9 @@ typedef void (*wifi_direct_connection_state_changed_cb) (int error_code,
 * @see wifi_direct_set_client_ip_address_assigned_cb()
 * @see wifi_direct_unset_client_ip_address_assigned_cb()
 */
-typedef void (*wifi_direct_client_ip_address_assigned_cb) (const char* mac_address,
-														 const char* ip_address,
-														 const char* interface_address,
+typedef void (*wifi_direct_client_ip_address_assigned_cb) (const char *mac_address,
+														 const char *ip_address,
+														 const char *interface_address,
 														 void *user_data);
 
 
@@ -375,7 +371,7 @@ typedef void (*wifi_direct_client_ip_address_assigned_cb) (const char* mac_addre
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_initialize();
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully connected to the wifi direct server
@@ -463,7 +459,7 @@ int wifi_direct_deinitialize(void);
  *
  * \param[in] cb    Application Callback function pointer to receive Wi-Fi Direct events
  * \param[in] user_data    user data
- * 
+ *
  * \return Return Type (int) \n
  *
  * - WIFI_DIRECT_ERROR_NONE on success \n
@@ -481,7 +477,7 @@ int wifi_direct_deinitialize(void);
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_set_connection_state_changed_cb(_cb_activation, void* user_data);
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully registered the callback function
@@ -526,7 +522,7 @@ int wifi_direct_set_device_state_changed_cb(wifi_direct_device_state_changed_cb 
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_unset_connection_state_changed_cb();
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully deregistered the callback function
@@ -557,7 +553,7 @@ int wifi_direct_unset_device_state_changed_cb(void);
  *
  * \param[in] cb    Application Callback function pointer to receive Wi-Fi Direct events
  * \param[in] user_data    user data
- * 
+ *
  * \return Return Type (int) \n
  *
  * - WIFI_DIRECT_ERROR_NONE on success \n
@@ -575,7 +571,7 @@ int wifi_direct_unset_device_state_changed_cb(void);
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_set_discovery_state_changed_cb(_cb_discover, void* user_data);
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully registered the callback function
@@ -620,7 +616,7 @@ int wifi_direct_set_discovery_state_changed_cb(wifi_direct_discovery_state_chagn
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_unset_discovery_state_changed_cb();
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully deregistered the callback function
@@ -651,7 +647,7 @@ int wifi_direct_unset_discovery_state_changed_cb(void);
  *
  * \param[in] cb    Application Callback function pointer to receive Wi-Fi Direct events
  * \param[in] user_data    user data
- * 
+ *
  * \return Return Type (int) \n
  *
  * - WIFI_DIRECT_ERROR_NONE on success \n
@@ -669,7 +665,7 @@ int wifi_direct_unset_discovery_state_changed_cb(void);
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_set_connection_state_changed_cb(_cb_connection, void* user_data);
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully registered the callback function
@@ -714,7 +710,7 @@ int wifi_direct_set_connection_state_changed_cb(wifi_direct_connection_state_cha
  * {
  *
  * int result;
- * 
+ *
  * result = wifi_direct_unset_connection_state_changed_cb();
  *
  * if(result == WIFI_DIRECT_ERROR_NONE).........// Successfully deregistered the callback function
@@ -737,7 +733,7 @@ int wifi_direct_unset_connection_state_changed_cb(void);
 * @see wifi_direct_unset_client_ip_address_assigned_cb()
 * @see wifi_direct_client_ip_address_assigned_cb()
 */
-int wifi_direct_set_client_ip_address_assigned_cb(wifi_direct_client_ip_address_assigned_cb cb, void* user_data);
+int wifi_direct_set_client_ip_address_assigned_cb(wifi_direct_client_ip_address_assigned_cb cb, void *user_data);
 
 
 /**
@@ -936,8 +932,8 @@ int wifi_direct_deactivate(void);
  *
  *\endcode
  *
- *\remarks If discover is over, peer can not find the device and the device can not find peer, too. 
- * 
+ *\remarks If discover is over, peer can not find the device and the device can not find peer, too.
+ *
  ******************************************************************************/
 int wifi_direct_start_discovery(bool listen_only, int timeout);
 
@@ -1013,7 +1009,7 @@ int wifi_direct_cancel_discovery(void);
  * @see wifi_direct_foreach_discovered_peers()
  *
  */
-typedef bool(*wifi_direct_discovered_peer_cb)	(wifi_direct_discovered_peer_info_s * peer, void *user_data);
+typedef bool(*wifi_direct_discovered_peer_cb)	(wifi_direct_discovered_peer_info_s *peer, void *user_data);
 
 
 /*****************************************************************************************/
@@ -1055,7 +1051,7 @@ typedef bool(*wifi_direct_discovered_peer_cb)	(wifi_direct_discovered_peer_info_
  * bool _cb_discovered_peers_impl(wifi_direct_discovered_peer_info_s* peer, void* user_data)
  * {
  *	struct appdata* ad = (struct appdata*) user_data;
- *	
+ *
  *	if(NULL != peer)
  *	{
  *		if ( ad->peer_count >= MAX_PEER_NUM )
@@ -1085,8 +1081,8 @@ typedef bool(*wifi_direct_discovered_peer_cb)	(wifi_direct_discovered_peer_info_
  *\remarks None.
  *
  ******************************************************************************/
-int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb
-										 callback, void *user_data);
+int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb callback,
+												void *user_data);
 
 
 /*****************************************************************************************/
@@ -1171,7 +1167,7 @@ int wifi_direct_connect(const char *mac_address);
  * \par Async Response Message:
  *    - WIFI_DIRECT_DISCONNECTION_RSP :  Applications will receive this event
  *                                   via callback when the disconnection process is completed.
- *                          
+ *
  *
  * \return Return Type (int) \n
  * - WIFI_DIRECT_ERROR_NONE on success \n
@@ -1213,7 +1209,7 @@ int wifi_direct_disconnect_all(void);
  * int wifi_direct_disconnect(const char* mac_address);
  */
 /**
- * \brief This API shall disconnect the specified peer by mac address. 
+ * \brief This API shall disconnect the specified peer by mac address.
  *
  * @param mac_addr Device address of target peer.
  *
@@ -1279,8 +1275,8 @@ int wifi_direct_disconnect(const char *mac_address);
  * @see wifi_direct_foreach_connected_peers()
  *
  */
-typedef bool(*wifi_direct_connected_peer_cb) (wifi_direct_connected_peer_info_s
-										  * peer, void *user_data);
+typedef bool(*wifi_direct_connected_peer_cb) (wifi_direct_connected_peer_info_s *peer,
+														void *user_data);
 
 
 /*****************************************************************************************/
@@ -1320,17 +1316,17 @@ typedef bool(*wifi_direct_connected_peer_cb) (wifi_direct_connected_peer_info_s
  *
  * bool _cb_connected_peers_impl(wifi_direct_connected_peer_info_s* peer, void* user_data)
  *{
- *	
+ *
  *	struct appdata* ad = (struct appdata*) user_data;
  *
  *	if(NULL != peer)
  *	{
  *		if ( ad->connected_peer_count >= MAX_PEER_NUM )
  *			return false;	// break out of the loop
- *		
+ *
  *		memcpy(&ad->connected_peer_list[ad->connected_peer_count], peer, sizeof(wifi_direct_connected_peer_info_s));
  *		ad->connected_peer_count++;
- *		
+ *
  *	}
  *
  *	return true;    // continue with the next iteration of the loop
@@ -1520,7 +1516,7 @@ int wifi_direct_destroy_group(void);
  *\remarks None.
  *
  ******************************************************************************/
-int wifi_direct_is_group_owner(bool * is_group_owner);
+int wifi_direct_is_group_owner(bool *is_group_owner);
 
 
 
@@ -1573,7 +1569,7 @@ int wifi_direct_is_group_owner(bool * is_group_owner);
  *\remarks None.
  *
  ******************************************************************************/
-int wifi_direct_is_autonomous_group(bool * is_autonomous_group);
+int wifi_direct_is_autonomous_group(bool *is_autonomous_group);
 
 
 
@@ -1583,7 +1579,7 @@ int wifi_direct_is_autonomous_group(bool * is_autonomous_group);
  * int wifi_direct_set_ssid(const char* ssid);
  */
 /**
- * \brief This API shall set or update ssid of local device. \n 
+ * \brief This API shall set or update ssid of local device. \n
  * @param ssid              new ssid to set. Application must set the new ssid before.
  *
  * \see wifi_direct_get_ssid
@@ -1624,13 +1620,13 @@ int wifi_direct_is_autonomous_group(bool * is_autonomous_group);
  *
  *if( strlen(ssid) > 0 )
  * 	result = wifi_direct_set_ssid(ssid);
- * 
+ *
  * if(result == WIFI_DIRECT_ERROR_NONE)......... // setting ssid is successful
  *
  *\endcode
  *
  *\remarks When the wifi direct is re-activated, ssid will be reset to the device name. \n
- *             
+ *
  *
  ******************************************************************************/
 int wifi_direct_set_ssid(const char *ssid);
@@ -1654,7 +1650,7 @@ int wifi_direct_set_ssid(const char *ssid);
  * @see wifi_direct_activate()
  * @see wifi_direct_get_device_name()
  */
-int wifi_direct_set_device_name(const char* device_name);
+int wifi_direct_set_device_name(const char *device_name);
 
 /**
  * @brief Gets the name of local device.
@@ -1671,7 +1667,7 @@ int wifi_direct_set_device_name(const char* device_name);
  * @see wifi_direct_initialize()
  * @see wifi_direct_set_device_name()
  */
-int wifi_direct_get_device_name(char** device_name);
+int wifi_direct_get_device_name(char **device_name);
 
 /*****************************************************************************************/
 /* wifi_direct_get_ssid API function prototype
@@ -1742,7 +1738,7 @@ int wifi_direct_get_ssid(char **ssid);
 * @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
 * @see wifi_direct_activate()
 */
-int wifi_direct_get_network_interface_name(char** name);
+int wifi_direct_get_network_interface_name(char **name);
 
 
 /*****************************************************************************************/
@@ -1812,7 +1808,7 @@ int wifi_direct_get_ip_address(char **ip_address);
 * @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
 * @see wifi_direct_activate()
 */
-int wifi_direct_get_subnet_mask(char** subnet_mask);
+int wifi_direct_get_subnet_mask(char **subnet_mask);
 
 
 /**
@@ -1831,7 +1827,7 @@ int wifi_direct_get_subnet_mask(char** subnet_mask);
 * @pre Wi-Fi Direct service must be activated by wifi_direct_activate().
 * @see wifi_direct_activate()
 */
-int wifi_direct_get_gateway_address(char** gateway_address);
+int wifi_direct_get_gateway_address(char **gateway_address);
 
 
 
@@ -1934,7 +1930,7 @@ int wifi_direct_get_mac_address(char **mac_address);
  *\remarks None.
  *
  ******************************************************************************/
-int wifi_direct_get_state(wifi_direct_state_e * state);
+int wifi_direct_get_state(wifi_direct_state_e *state);
 
 
 
@@ -1955,7 +1951,7 @@ int wifi_direct_get_state(wifi_direct_state_e * state);
 * @see wifi_direct_start_discovery()
 * @see wifi_direct_cancel_discovery()
 */
-int wifi_direct_is_discoverable(bool* discoverable);
+int wifi_direct_is_discoverable(bool *discoverable);
 
 /**
 * @brief Checks whether the local device is listening only.
@@ -1975,7 +1971,7 @@ int wifi_direct_is_discoverable(bool* discoverable);
 * @see wifi_direct_cancel_discovery()
 * @see wifi_direct_is_discoverable()
 */
-int wifi_direct_is_listening_only(bool* listen_only);
+int wifi_direct_is_listening_only(bool *listen_only);
 
 /**
 * @brief Gets the primary device type of local device.
@@ -1991,7 +1987,7 @@ int wifi_direct_is_listening_only(bool* listen_only);
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
 */
-int wifi_direct_get_primary_device_type(wifi_direct_primary_device_type_e* type);
+int wifi_direct_get_primary_device_type(wifi_direct_primary_device_type_e *type);
 
  /**
 * @brief Gets the secondary device type of local device.
@@ -2007,7 +2003,7 @@ int wifi_direct_get_primary_device_type(wifi_direct_primary_device_type_e* type)
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
 */
-int wifi_direct_get_secondary_device_type(wifi_direct_secondary_device_type_e* type);
+int wifi_direct_get_secondary_device_type(wifi_direct_secondary_device_type_e *type);
 
 
 /*****************************************************************************************/
@@ -2115,7 +2111,7 @@ int wifi_direct_accept_connection(char *mac_address);
  *
  *if( strlen(new_wpa) > 0 )
  * 	result = wifi_direct_set_wpa_passphrase(new_wpa);
- * 
+ *
  * if(result == WIFI_DIRECT_ERROR_NONE)......... // setting password is successful
  *
  *\endcode
@@ -2223,7 +2219,7 @@ int wifi_direct_activate_pushbutton(void);
  *
  *if( strlen(pin) > 0 )
  * 	result = wifi_direct_set_wps_pin(pin);
- * 
+ *
  * if(result == WIFI_DIRECT_ERROR_NONE)......... // setting wps pin number is successful
  *
  *\endcode
@@ -2275,7 +2271,7 @@ int wifi_direct_set_wps_pin(char *pin);
  * char* pin = NULL;
  *
  * result = wifi_direct_get_wps_pin(&pin);
- * 
+ *
  * if(result == WIFI_DIRECT_ERROR_NONE)......... // getting wps pin number is successful
  *
  * free(pin); // Application should free the memory.
@@ -2328,7 +2324,7 @@ int wifi_direct_get_wps_pin(char **pin);
  * int  result;
  *
  * result = wifi_direct_generate_wps_pin();
- * 
+ *
  * if(result == WIFI_DIRECT_ERROR_NONE)......... // generating wps pin number is successful
  *
  *\endcode
@@ -2382,7 +2378,7 @@ int wifi_direct_generate_wps_pin(void);
  * int supported_wps_mode = 0;
  *
  * result = wifi_direct_get_supported_wps_mode(&supported_wps_mode);
- * 
+ *
  * if(result == WIFI_DIRECT_ERROR_NONE)......... // getting supported wps mode is successful
  *
  *\endcode
@@ -2401,7 +2397,7 @@ int wifi_direct_get_supported_wps_mode(int *wps_mode);
 * @pre  wifi_direct_foreach_supported_wps_types() will invoke this callback.
 * @see  wifi_direct_foreach_supported_wps_types()
 */
-typedef bool(*wifi_direct_supported_wps_type_cb)(wifi_direct_wps_type_e type, void* user_data);
+typedef bool(*wifi_direct_supported_wps_type_cb)(wifi_direct_wps_type_e type, void *user_data);
 
 /**
 * @brief Gets the supported WPS(Wi-Fi Protected Setup) types.
@@ -2411,7 +2407,7 @@ typedef bool(*wifi_direct_supported_wps_type_cb)(wifi_direct_wps_type_e type, vo
 * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
 * @see wifi_direct_supported_wps_type_cb()
 */
-int wifi_direct_foreach_supported_wps_types(wifi_direct_supported_wps_type_cb callback, void* user_data);
+int wifi_direct_foreach_supported_wps_types(wifi_direct_supported_wps_type_cb callback, void *user_data);
 
 /**
  * @brief Sets the WPS(Wi-Fi Protected Setup) type.
@@ -2428,7 +2424,7 @@ int wifi_direct_set_wps_type(wifi_direct_wps_type_e type);
  * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
  * @see wifi_direct_foreach_supported_wps_types()
  */
-int wifi_direct_get_wps_type(wifi_direct_wps_type_e* type);
+int wifi_direct_get_wps_type(wifi_direct_wps_type_e *type);
 
 /**
 * @brief Sets the intent of a group owner.
@@ -2447,8 +2443,8 @@ int wifi_direct_set_group_owner_intent(int intent);
 * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
 * @see wifi_direct_set_group_owner_intent()
 */
-int wifi_direct_get_group_owner_intent(int* intent);
-	
+int wifi_direct_get_group_owner_intent(int *intent);
+
 /**
 * @brief Sets the max number of clients.
 * @param[in] max  The max number of clients
@@ -2457,7 +2453,7 @@ int wifi_direct_get_group_owner_intent(int* intent);
 * @see wifi_direct_get_max_clients()
 */
 int wifi_direct_set_max_clients(int max);
-	
+
 /**
 * @brief Gets the max number of clients.
 * @param[in] max  The max number of clients
@@ -2465,11 +2461,11 @@ int wifi_direct_set_max_clients(int max);
 * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
 * @see wifi_direct_set_max_clients()
 */
-int wifi_direct_get_max_clients(int* max);
+int wifi_direct_get_max_clients(int *max);
 
 
 /**
-* @brief Gets the channel of own group. - DEPRECATED 
+* @brief Gets the channel of own group. - DEPRECATED
 * @param[out] channel  The channel of own group
 * @return 0 on success, otherwise a negative error value.
 * @retval #WIFI_DIRECT_ERROR_NONE  Successful
@@ -2482,7 +2478,7 @@ int wifi_direct_get_max_clients(int* max);
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
 */
-int wifi_direct_get_own_group_channel(int* channel);
+int wifi_direct_get_own_group_channel(int *channel);
 
 
 /**
@@ -2499,7 +2495,7 @@ int wifi_direct_get_own_group_channel(int* channel);
 * @pre Wi-Fi Direct service must be initialized by wifi_direct_initialize().
 * @see wifi_direct_initialize()
 */
-int wifi_direct_get_operating_channel(int* channel);
+int wifi_direct_get_operating_channel(int *channel);
 
 /**
  * @brief Sets the Autoconnection mode.
@@ -2510,9 +2506,9 @@ int wifi_direct_get_operating_channel(int* channel);
  */
 int wifi_direct_set_autoconnection_mode(bool mode);
 
-int wifi_direct_is_autoconnection_mode(bool* mode);
+int wifi_direct_is_autoconnection_mode(bool *mode);
 
-/**  
+/**
 * @brief Enables the persistent group.
 * @details If @a enabled is true, then P2P persisten group will be used when creating a group and establishing a connection.
 * @param[in] enabled  The status of persistent group: (@c true = enabled, @c false = disabled)
@@ -2542,7 +2538,7 @@ int wifi_direct_set_persistent_group_enabled(bool enabled);
 * @see wifi_direct_initialize()
 * @see wifi_direct_set_persistent_group_enabled()
 */
-int wifi_direct_is_persistent_group_enabled(bool* enabled);
+int wifi_direct_is_persistent_group_enabled(bool *enabled);
 
 
 /**
@@ -2554,7 +2550,7 @@ int wifi_direct_is_persistent_group_enabled(bool* enabled);
 * @pre  wifi_direct_foreach_persistent_groups() will invoke this callback.
 * @see  wifi_direct_foreach_persistent_groups()
 */
-typedef bool(*wifi_direct_persistent_group_cb)(const char* mac_address, const char* ssid, void* user_data);
+typedef bool(*wifi_direct_persistent_group_cb)(const char *mac_address, const char *ssid, void *user_data);
 
 /**
 * @brief Gets the persistent groups.
@@ -2572,7 +2568,7 @@ typedef bool(*wifi_direct_persistent_group_cb)(const char* mac_address, const ch
 * @see wifi_direct_initialize()
 * @see wifi_direct_persistent_group_cb()
 */
-int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb callback, void* user_data);
+int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb callback, void *user_data);
 
 /**
 * @brief Remove a persistent group.
@@ -2589,7 +2585,7 @@ int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb callba
 * @see wifi_direct_initialize()
 * @see wifi_direct_foreach_persistent_groups()
 */
-int wifi_direct_remove_persistent_group(const char* mac_address, const char* ssid);
+int wifi_direct_remove_persistent_group(const char *mac_address, const char *ssid);
 
 
 /**

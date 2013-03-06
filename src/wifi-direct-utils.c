@@ -52,13 +52,10 @@ char *wfd_trim_path(const char *filewithpath)
 	const char *space = "                                        ";
 	int len = strlen(filewithpath);
 
-	if (len > 20)
-	{
+	if (len > 20) {
 		strptr = (char *) filewithpath + (len - 20);
 		start = 0;
-	}
-	else if (len < 20)
-	{
+	} else if (len < 20) {
 		strptr = (char *) filewithpath;
 		start = 20 - len;
 	}
@@ -83,12 +80,9 @@ char *wfd_debug_print(char *file, int line, char *format, ...)
 
 	snprintf(prefix_buffer, 64, "[%s:%d,%d]", file, line, wfd_gettid());
 	int len = strlen(prefix_buffer);
-	if (len > header_max)
-	{
+	if (len > header_max) {
 		prefix = prefix_buffer + (len - header_max);
-	}
-	else
-	{
+	} else {
 		prefix = prefix_buffer;
 	}
 
@@ -132,5 +126,4 @@ char *wfd_print_state(wifi_direct_state_e s)
 	default:
 		return "Unknown";
 	}
-	return "Unknown";
 }
