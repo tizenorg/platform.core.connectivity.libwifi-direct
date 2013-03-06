@@ -65,9 +65,11 @@ wifi_direct_client_info_s g_client_info = {
 	.activation_cb = NULL,
 	.discover_cb = NULL,
 	.connection_cb = NULL,
+	.ip_assigned_cb = NULL,
 	.user_data_for_cb_activation = NULL,
 	.user_data_for_cb_discover = NULL,
-	.user_data_for_cb_connection = NULL
+	.user_data_for_cb_connection = NULL,
+	.user_data_for_cb_ip_assigned = NULL
 };
 
 /*****************************************************************************
@@ -111,9 +113,11 @@ static void __wfd_reset_control()
 	g_client_info.activation_cb = NULL;
 	g_client_info.discover_cb = NULL;
 	g_client_info.connection_cb = NULL;
+	g_client_info.ip_assigned_cb = NULL;
 	g_client_info.user_data_for_cb_activation = NULL;
 	g_client_info.user_data_for_cb_discover = NULL;
 	g_client_info.user_data_for_cb_connection = NULL;
+	g_client_info.user_data_for_cb_ip_assigned = NULL;
 }
 
 
@@ -871,9 +875,11 @@ int wifi_direct_initialize(void)
 	client_info->activation_cb = NULL;
 	client_info->discover_cb = NULL;
 	client_info->connection_cb = NULL;
+	client_info->ip_assigned_cb = NULL;
 	client_info->user_data_for_cb_activation = NULL;
 	client_info->user_data_for_cb_discover = NULL;
 	client_info->user_data_for_cb_connection = NULL;
+	client_info->user_data_for_cb_ip_assigned = NULL;
 
 	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
@@ -897,9 +903,11 @@ int wifi_direct_deinitialize(void)
 	client_info->activation_cb = NULL;
 	client_info->discover_cb = NULL;
 	client_info->connection_cb = NULL;
+	client_info->ip_assigned_cb = NULL;
 	client_info->user_data_for_cb_activation = NULL;
 	client_info->user_data_for_cb_discover = NULL;
 	client_info->user_data_for_cb_connection = NULL;
+	client_info->user_data_for_cb_ip_assigned = NULL;
 
 	wifi_direct_client_request_s req;
 	wifi_direct_client_response_s rsp;
@@ -946,7 +954,27 @@ int wifi_direct_deinitialize(void)
 	}
 	else
 	{
-		WDC_LOGD("Error.. Something wrong...!!!\n");
+		if (rsp.cmd == WIFI_DIRECT_CMD_DEREGISTER)
+		{
+			if (rsp.result != WIFI_DIRECT_ERROR_NONE) {
+				WDC_LOGE("Error!!! Result received = %d\n", rsp.result);
+				WDC_LOGE("Error!!! [%s]\n", __wfd_print_error(rsp.result));
+			} else {
+				WDC_LOGD("Deinit Successfull\n");
+
+				if (client_info->g_source_id > 0)
+					g_source_remove(client_info->g_source_id);
+				client_info->g_source_id = -1;
+
+				close(client_info->sync_sockfd);
+				client_info->sync_sockfd = -1;
+				__wfd_reset_control();
+				__WDC_LOG_FUNC_END__;
+				return WIFI_DIRECT_ERROR_NONE;
+			}
+		}
+
+		WDC_LOGE("Error.. Something wrong...!!!\n");
 	}
 
 	__wfd_reset_control();
