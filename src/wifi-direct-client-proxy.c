@@ -754,13 +754,17 @@ int wifi_direct_initialize(void)
 		if ((ret = connect(sockfd, (struct sockaddr *) &servAddr, len)) < 0)
 		{
 			WDC_LOGD("Launching wfd-server..\n");
-			system("dbus-send --system --print-reply --dest=net.netconfig /net/netconfig/wifi net.netconfig.wifi.LaunchDirect");
+			ret = system("dbus-send --system --print-reply --dest=net.netconfig /net/netconfig/wifi net.netconfig.wifi.LaunchDirect");
+			if (ret == -1)
+				WDC_LOGE("Error!!! sending dbus msg Error = [%s]", strerror(errno));
 			retry_count--;
 		}
 		else
 		{
 			break;
 		}
+
+		usleep(100000); /* wait a few seconds before retrying the next socket connection */
 	}
 
 	if (ret < 0)
