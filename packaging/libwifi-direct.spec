@@ -1,6 +1,6 @@
 Name:       libwifi-direct
-Summary:    wifi direct library 
-Version:    0.3.4
+Summary:    wifi direct library
+Version:    0.3.5
 Release:    1
 Group:      Connectivity/Wireless
 License:    Apache-2.0

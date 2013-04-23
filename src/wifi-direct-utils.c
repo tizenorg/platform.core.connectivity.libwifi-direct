@@ -33,6 +33,7 @@
 #include "wifi-direct-client-proxy.h"
 #include "wifi-direct-internal.h"
 
+#if 0
 int wfd_gettid()
 {
 #ifdef __NR_gettid
@@ -90,6 +91,7 @@ char *wfd_debug_print(char *file, int line, char *format, ...)
 
 	return buffer_internal;
 }
+#endif
 
 char *wfd_print_state(wifi_direct_state_e s)
 {

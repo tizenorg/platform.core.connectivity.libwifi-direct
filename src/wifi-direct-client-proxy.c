@@ -3626,7 +3626,7 @@ int wifi_direct_foreach_supported_wps_types(wifi_direct_supported_wps_type_cb ca
 				WDC_LOGD( "Supported wps config = [%d]\n",
 							   (int) rsp.param1);
 				int wps_mode;
-				bool result;
+				bool result = TRUE;
 				
 				wps_mode = rsp.param1;
 
@@ -4389,83 +4389,7 @@ int wifi_direct_get_ip_address(char **ip_address)
 	}
 
 
-#if 0
-	wifi_direct_client_request_s req;
-	wifi_direct_client_response_s rsp;
-	char la_ip[64] = { 0, };
-
-	int status = WIFI_DIRECT_ERROR_NONE;
-
-	memset(&req, 0, sizeof(wifi_direct_client_request_s));
-	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
-
-	req.cmd = WIFI_DIRECT_CMD_GET_IP_ADDR;
-	req.client_id = client_info->client_id;
-
-	status =
-		__wfd_client_send_request(client_info->sync_sockfd, &req,
-								  sizeof(wifi_direct_client_request_s));
-	if (status != WIFI_DIRECT_ERROR_NONE)
-	{
-		WDC_LOGE("Error!!! writing to socket, Errno = %s\n", strerror(errno));
-		WDC_LOGE("Error!!! [%s]\n",
-					   __wfd_print_error(status));
-		client_info->sync_sockfd = -1;
-		__wfd_reset_control();
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-
-	if ((status =
-		 __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
-								  sizeof(wifi_direct_client_response_s))) <= 0)
-	{
-		WDC_LOGE("Error!!! reading socket, status = %d errno = %s\n", status, strerror(errno));
-		client_info->sync_sockfd = -1;
-		__wfd_reset_control();
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-	else
-	{
-		if (rsp.cmd == WIFI_DIRECT_CMD_GET_IP_ADDR)
-		{
-			if (rsp.result != WIFI_DIRECT_ERROR_NONE)
-			{
-				WDC_LOGD("Error!!! Result received = %d \n",
-							   rsp.result);
-				WDC_LOGD("Error!!! [%s]\n",
-							   __wfd_print_error(rsp.result));
-				__WDC_LOG_FUNC_END__;
-				return rsp.result;
-			}
-			else
-			{
-				WDC_LOGD("wifi_direct_get_ip_address() SUCCESS \n");
-				strncpy(la_ip, rsp.param2, strlen(rsp.param2));
-
-				char *temp_ip = NULL;
-				temp_ip = strdup(la_ip);
-				if (NULL == temp_ip)
-				{
-					WDC_LOGE("Failed to allocate memory for IP address\n");
-					return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
-				}
-
-				*ip_address = temp_ip;
-			}
-		}
-		else
-		{
-			WDC_LOGE("Error!!! Invalid resp cmd = %d\n",
-						   rsp.cmd);
-			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
-		}
-	}
-#endif
-
 	__WDC_LOG_FUNC_END__;
-
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -4618,79 +4542,6 @@ int wifi_direct_get_mac_address(char **mac_address)
 		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
 	}
 
-#if 0
-	wifi_direct_client_request_s req;
-	wifi_direct_client_response_s rsp;
-	unsigned char la_mac_addr[6] = { 0, };
-
-	int status = WIFI_DIRECT_ERROR_NONE;
-
-	memset(&req, 0, sizeof(wifi_direct_client_request_s));
-	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
-
-	req.cmd = WIFI_DIRECT_CMD_GET_DEVICE_MAC;
-	req.client_id = client_info->client_id;
-
-	status =
-		__wfd_client_send_request(client_info->sync_sockfd, &req,
-								  sizeof(wifi_direct_client_request_s));
-	if (status != WIFI_DIRECT_ERROR_NONE)
-	{
-		WDC_LOGD("Error!!! writing to socket, Errno = %s\n", strerror(errno));
-		WDC_LOGD("Error!!! [%s]\n", __wfd_print_error(status));
-		close(client_info->sync_sockfd);
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-
-	if ((status =
-		 __wfd_client_read_socket(client_info->sync_sockfd, (char *) &rsp,
-								  sizeof(wifi_direct_client_response_s))) <= 0)
-	{
-		WDC_LOGD("Error!!! reading socket, status = %d errno = %s", status, strerror(errno));
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-	else
-	{
-		if (rsp.cmd == WIFI_DIRECT_CMD_GET_DEVICE_MAC)
-		{
-			if (rsp.result != WIFI_DIRECT_ERROR_NONE)
-			{
-				WDC_LOGD("Error!!! Result received = %d", rsp.result);
-				WDC_LOGD("Error!!! [%s]", __wfd_print_error(rsp.result));
-				__WDC_LOG_FUNC_END__;
-				return rsp.result;
-			}
-			else
-			{
-				WDC_LOGD("wifi_direct_get_mac_addr() SUCCESS");
-				strncpy((char *) la_mac_addr, (char *) rsp.param2,
-						strlen(rsp.param2));
-
-				char *temp_mac = NULL;
-				temp_mac = (char *) calloc(1, 18);
-				if (NULL == temp_mac)
-				{
-					WDC_LOGE("Failed to allocate memory for MAC address");
-					return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
-				}
-
-				sprintf(temp_mac, MACSTR, MAC2STR(la_mac_addr));
-
-				*mac_address = temp_mac;
-
-			}
-		}
-		else
-		{
-			WDC_LOGE("Error!!! Invalid resp cmd = %d",
-						   rsp.cmd);
-			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
-		}
-	}
-
-#else
 	int fd;
 	int n;
 	char mac_info[18];
@@ -4720,7 +4571,7 @@ int wifi_direct_get_mac_address(char **mac_address)
 
 	memset(la_mac_addr, 0, sizeof(la_mac_addr));
 	macaddr_atoe(mac_info, la_mac_addr);
-	la_mac_addr[0] = la_mac_addr[0] | 0x02;
+	la_mac_addr[0] |= 0x02;
 
 	char *temp_mac = NULL;
 	temp_mac = (char *) calloc(1, 18);
@@ -4736,8 +4587,6 @@ int wifi_direct_get_mac_address(char **mac_address)
 	snprintf(temp_mac, 18, MACSTR, MAC2STR(la_mac_addr));
 
 	*mac_address = temp_mac;
-
-#endif
 
 	if (fd > 0)
 		close(fd);
