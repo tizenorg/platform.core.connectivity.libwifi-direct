@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2000 - 2012 Samsung Electronics Co., Ltd. All rights reserved.
  *
- * Contact: Sungsik Jang <sungsik.jang@samsung.com>, Dongwook Lee <dwmax.lee@samsung.com> 
+ * Contact: Sungsik Jang <sungsik.jang@samsung.com>, Dongwook Lee <dwmax.lee@samsung.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,7 +108,7 @@ typedef enum
 	WIFI_DIRECT_CMD_SET_MAX_CLIENT,
 	WIFI_DIRECT_CMD_GET_MAX_CLIENT,
 	WIFI_DIRECT_CMD_SET_AUTOCONNECTION_MODE,
-	WIFI_DIRECT_CMD_IS_AUTOCONNECTION_MODE,	
+	WIFI_DIRECT_CMD_IS_AUTOCONNECTION_MODE,
 	WIFI_DIRECT_CMD_IS_DISCOVERABLE,
 	WIFI_DIRECT_CMD_IS_LISTENING_ONLY,
 	WIFI_DIRECT_CMD_GET_OWN_GROUP_CHANNEL,
