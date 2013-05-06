@@ -137,7 +137,6 @@ static int macaddr_atoe(char *p, unsigned char mac[])
 	return (i == 6);
 }
 
-
 static char *__wfd_print_event(wfd_client_event_e event)
 {
 	switch (event)
@@ -246,11 +245,11 @@ static int __wfd_convert_client_event(wfd_client_event_e event)
 		return WIFI_DIRECT_DEVICE_STATE_DEACTIVATED;
 		break;
 
-	case WIFI_DIRECT_CLI_EVENT_DISCOVER_START_LISTEN_ONLY:
-		return WIFI_DIRECT_ONLY_LISTEN_STARTED;
-		break;
 	case WIFI_DIRECT_CLI_EVENT_DISCOVER_START:
 		return WIFI_DIRECT_DISCOVERY_STARTED;
+		break;
+	case WIFI_DIRECT_CLI_EVENT_DISCOVER_START_LISTEN_ONLY:
+		return WIFI_DIRECT_ONLY_LISTEN_STARTED;
 		break;
 	case WIFI_DIRECT_CLI_EVENT_DISCOVER_END:
 		return WIFI_DIRECT_DISCOVERY_FINISHED;
@@ -268,11 +267,11 @@ static int __wfd_convert_client_event(wfd_client_event_e event)
 	case WIFI_DIRECT_CLI_EVENT_CONNECTION_RSP:
 		return WIFI_DIRECT_CONNECTION_RSP;
 		break;
-	case WIFI_DIRECT_CLI_EVENT_DISCONNECTION_RSP:
-		return WIFI_DIRECT_DISCONNECTION_RSP;
-		break;
 	case WIFI_DIRECT_CLI_EVENT_CONNECTION_WPS_REQ:
 		return WIFI_DIRECT_CONNECTION_WPS_REQ;
+		break;
+	case WIFI_DIRECT_CLI_EVENT_DISCONNECTION_RSP:
+		return WIFI_DIRECT_DISCONNECTION_RSP;
 		break;
 	case WIFI_DIRECT_CLI_EVENT_DISCONNECTION_IND:
 		return WIFI_DIRECT_DISCONNECTION_IND;
@@ -295,7 +294,7 @@ static int __wfd_convert_client_event(wfd_client_event_e event)
 	}
 
 	__WDC_LOG_FUNC_END__;
-
+	return -1;
 }
 
 static gboolean __wfd_client_process_event(GIOChannel * source,
@@ -732,7 +731,8 @@ int wifi_direct_initialize(void)
 	}
 
 	errno = 0;
-	if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0)
+	sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sockfd < 3)
 	{
 		WDC_LOGE("Error!!! creating sync socket. Error = [%s].", strerror(errno));
 		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
@@ -751,19 +751,16 @@ int wifi_direct_initialize(void)
 	while (retry_count > 0)
 	{
 		errno = 0;
-		if ((ret = connect(sockfd, (struct sockaddr *) &servAddr, len)) < 0)
-		{
-			WDC_LOGD("Launching wfd-server..\n");
-			ret = system("dbus-send --system --print-reply --dest=net.netconfig /net/netconfig/wifi net.netconfig.wifi.LaunchDirect");
-			if (ret == -1)
-				WDC_LOGE("Error!!! sending dbus msg Error = [%s]", strerror(errno));
-			retry_count--;
-		}
-		else
-		{
+		ret = connect(sockfd, (struct sockaddr *) &servAddr, len);
+		if (!ret) {
+			WDC_LOGD("Succeeded to connect to server socket");
 			break;
 		}
-
+		WDC_LOGD("Launching wfd-server..\n");
+		ret = system("dbus-send --system --print-reply --dest=net.netconfig /net/netconfig/wifi net.netconfig.wifi.LaunchDirect");
+		if (ret == -1)
+			WDC_LOGE("Error!!! sending dbus msg Error = [%s]", strerror(errno));
+		retry_count--;
 		usleep(100000); /* wait a few seconds before retrying the next socket connection */
 	}
 
@@ -771,7 +768,7 @@ int wifi_direct_initialize(void)
 	{
 		WDC_LOGE("Error!!! connecting to server socket. Error = [%d] %s.\n",
 					   errno, strerror(errno));
-		if (sockfd > 0)
+		if (sockfd > 2)
 			close(sockfd);
 
 		__WDC_LOG_FUNC_END__;
@@ -797,7 +794,7 @@ int wifi_direct_initialize(void)
 		{
 			WDC_LOGE("Error!!! writing to socket, Errno = %s\n", strerror(errno));
 			WDC_LOGE("Error!!! [%s]\n", __wfd_print_error(status));
-			if (sockfd > 0)
+			if (sockfd > 2)
 				close(sockfd);
 			__WDC_LOG_FUNC_END__;
 			return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
@@ -808,7 +805,7 @@ int wifi_direct_initialize(void)
 			sizeof(wifi_direct_client_response_s))) <= 0)
 		{
 			WDC_LOGE("Error!!! reading socket, status = %d errno = %s\n", status, strerror(errno));
-			if (sockfd > 0)
+			if (sockfd > 2)
 				close(sockfd);
 			__WDC_LOG_FUNC_END__;
 			return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
@@ -830,7 +827,7 @@ int wifi_direct_initialize(void)
 				else
 				{
 					WDC_LOGE("Error!!! Client Register = %d\n", resp.result);
-					if (sockfd > 0)
+					if (sockfd > 2)
 						close(sockfd);
 					__WDC_LOG_FUNC_END__;
 					return resp.result;
@@ -842,7 +839,7 @@ int wifi_direct_initialize(void)
 				if (async_sockfd == WIFI_DIRECT_ERROR_COMMUNICATION_FAILED)
 				{
 					WDC_LOGE("Error!!! creating Async Socket \n");
-					if (sockfd > 0)
+					if (sockfd > 2)
 						close(sockfd);
 					__wfd_reset_control();
 					__WDC_LOG_FUNC_END__;
@@ -855,7 +852,7 @@ int wifi_direct_initialize(void)
 			{
 				WDC_LOGE("Error!!! Invalid Response received from wfd Server. cmd = %d \n",
 							   resp.cmd);
-				if (sockfd > 0)
+				if (sockfd > 2)
 					close(sockfd);
 				__WDC_LOG_FUNC_END__;
 				return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
@@ -1110,6 +1107,7 @@ wifi_direct_set_connection_state_changed_cb
 	client_info->connection_cb = cb;
 	client_info->user_data_for_cb_connection = user_data;
 
+	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -1130,6 +1128,7 @@ int wifi_direct_unset_connection_state_changed_cb(void)
 	client_info->connection_cb = NULL;
 	client_info->user_data_for_cb_connection = NULL;
 
+	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -1157,6 +1156,7 @@ int wifi_direct_set_client_ip_address_assigned_cb(wifi_direct_client_ip_address_
 	client_info->ip_assigned_cb = cb;
 	client_info->user_data_for_cb_ip_assigned = user_data;
 
+	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -1176,6 +1176,7 @@ int wifi_direct_unset_client_ip_address_assigned_cb(void)
 	client_info->ip_assigned_cb = NULL;
 	client_info->user_data_for_cb_ip_assigned = NULL;
 
+	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
@@ -3366,12 +3367,8 @@ int wifi_direct_get_wps_pin(char **pin)
 			else
 			{
 				WDC_LOGD("wifi_direct_get_wps_pin() SUCCESS");
-				strncpy(la_pin, rsp.param2, WIFI_DIRECT_WPS_PIN_LEN);
-
-				char *temp_pin;
-				temp_pin = strdup(la_pin);
-
-				*pin = temp_pin;
+				snprintf(la_pin, WIFI_DIRECT_WPS_PIN_LEN+1, rsp.param2);
+				*pin = strdup(la_pin);
 			}
 		}
 		else
@@ -4037,20 +4034,10 @@ int wifi_direct_get_ssid(char **ssid)
 			}
 			else
 			{
-				WDC_LOGD(
-							   "wifi_direct_get_ssid() %s SUCCESS \n",
+				WDC_LOGD("wifi_direct_get_ssid() %s SUCCESS \n",
 							   rsp.param2);
-				strncpy(la_ssid, rsp.param2, WIFI_DIRECT_MAX_SSID_LEN);
-
-				char *temp_ssid = NULL;
-				temp_ssid = strdup(la_ssid);
-				if (NULL == temp_ssid)
-				{
-					WDC_LOGE("Failed to allocate memory for SSID\n");
-					return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
-				}
-
-				*ssid = temp_ssid;
+				snprintf(la_ssid, WIFI_DIRECT_MAX_SSID_LEN+1, rsp.param2);
+				*ssid = strdup(la_ssid);
 			}
 
 		}
@@ -4139,17 +4126,8 @@ int wifi_direct_get_device_name(char** device_name)
 			else
 			{
 				WDC_LOGD("wifi_direct_get_device_name() %s SUCCESS \n", rsp.param2);
-				strncpy(la_device_name, rsp.param2, WIFI_DIRECT_MAX_DEVICE_NAME_LEN);
-
-				char *temp_device_name = NULL;
-				temp_device_name = strdup(la_device_name);
-				if (NULL == temp_device_name)
-				{
-					WDC_LOGE("Failed to allocate memory for device name\n");
-					return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
-				}
-
-				*device_name = temp_device_name;
+				snprintf(la_device_name, WIFI_DIRECT_MAX_DEVICE_NAME_LEN+1, rsp.param2);
+				*device_name = strdup(la_device_name);
 			}
 
 		}
@@ -4550,7 +4528,7 @@ int wifi_direct_get_mac_address(char **mac_address)
 	memset(mac_info, 0, sizeof(mac_info));
 
 	fd = open(WIFI_DIRECT_MAC_ADDRESS_INFO_FILE, O_RDONLY);
-	if (fd == -1)
+	if (fd < 3)
 	{
 		WDC_LOGE("[.mac.info] file open failed.");
 		__WDC_LOG_FUNC_END__;
@@ -4578,17 +4556,16 @@ int wifi_direct_get_mac_address(char **mac_address)
 	if (NULL == temp_mac)
 	{
 		WDC_LOGE("Failed to allocate memory for MAC address");
-		if (fd > 0)
+		if (fd > 2)
 			close(fd);
 		return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
 	}
 
-	//strncpy(temp_mac, mac_info, strlen(mac_info));
 	snprintf(temp_mac, 18, MACSTR, MAC2STR(la_mac_addr));
 
 	*mac_address = temp_mac;
 
-	if (fd > 0)
+	if (fd > 2)
 		close(fd);
 
 	__WDC_LOG_FUNC_END__;
@@ -5452,6 +5429,7 @@ int wifi_direct_remove_persistent_group(const char* mac_address, const char* ssi
 	WDC_LOGD("writing msg hdr is success!");
 
 	strncpy(persistent_group_info.ssid, ssid, strlen(ssid));
+	persistent_group_info.ssid[WIFI_DIRECT_MAX_SSID_LEN] = '\0';
 
 	memset(la_mac_addr, 0, sizeof(la_mac_addr));
 	macaddr_atoe(mac_address, la_mac_addr);
