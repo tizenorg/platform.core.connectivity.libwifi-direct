@@ -84,7 +84,7 @@ IF("${ARCH}" STREQUAL "arm")
 ENDIF("${ARCH}" STREQUAL "arm")
 
 ADD_DEFINITIONS("-DPREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
-ADD_DEFINITIONS(" -DEXPORT_API=\"__attribute__((visibility(\\\"default\\\")))\" ")
+ADD_DEFINITIONS("-DEXPORT_API=\"__attribute__((visibility(\\\"default\\\")))\" ")
 
 # Linker flags
 SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed")
