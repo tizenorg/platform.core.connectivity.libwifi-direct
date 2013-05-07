@@ -57,23 +57,15 @@
 
 #else /** _DLOG_UTIL */
 
-#define WDC_LOGV(format, args...) \
-	printf("[V/WIFI_DIRECT] %s: %s()(%4d)> "format, __FILE__, __FUNCTION__, __LINE__, ##args)
-#define WDC_LOGD(format, args...) \
-	printf("[D/WIFI_DIRECT] %s: %s()(%4d)> "format, __FILE__, __FUNCTION__, __LINE__, ##args)
-#define WDC_LOGI(format, args...) \
-	printf("[I/WIFI_DIRECT] %s: %s()(%4d)> "format, __FILE__, __FUNCTION__, __LINE__, ##args)
-#define WDC_LOGW(format, args...) \
-	printf("[W/WIFI_DIRECT] %s: %s()(%4d)> "format, __FILE__, __FUNCTION__, __LINE__, ##args)
-#define WDC_LOGE(format, args...) \
-	printf("[E/WIFI_DIRECT] %s: %s()(%4d)> "format, __FILE__, __FUNCTION__, __LINE__, ##args)
-#define WDC_LOGF(format, args...) \
-	printf("[F/WIFI_DIRECT] %s: %s()(%4d)> "format, __FILE__, __FUNCTION__, __LINE__, ##args)
+#define WDC_LOGV(format, args...)
+#define WDC_LOGD(format, args...)
+#define WDC_LOGI(format, args...)
+#define WDC_LOGW(format, args...)
+#define WDC_LOGE(format, args...)
+#define WDC_LOGF(format, args...)
 
-#define __WDC_LOG_FUNC_START__ \
-	printf("[V/WIFI_DIRECT] %s: %s()(%4d)> Start", __FILE__, __FUNCTION__, __LINE__)
-#define __WDC_LOG_FUNC_END__ \
-	printf("[V/WIFI_DIRECT] %s: %s()(%4d)> End", __FILE__, __FUNCTION__, __LINE__)
+#define __WDC_LOG_FUNC_START__
+#define __WDC_LOG_FUNC_END__
 
 #endif /** _DLOG_UTIL */
 
