@@ -1,5 +1,5 @@
 Name:       libwifi-direct
-Summary:    wifi direct library
+Summary:    Wifi direct library
 Version:    0.3.7
 Release:    1
 Group:      Connectivity/Wireless
@@ -14,7 +14,7 @@ BuildRequires:  gettext-devel
 wifi direct library (Shared Library)
 
 %package devel 
-Summary:    wifi direct library (Shared Library) (Developement)
+Summary:    Wifi direct library (Shared Library) (Developement)
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
 
@@ -38,6 +38,11 @@ export ARCH=i586
 
 mkdir -p %{buildroot}/usr/share/license
 cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{name}
+
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
 
 %files
 %manifest libwifi-direct.manifest
