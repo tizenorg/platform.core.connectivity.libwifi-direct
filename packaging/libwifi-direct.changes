@@ -1,0 +1,3 @@
+* Tue May 28 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> accepted/tizen/20130520.101028@920a701
+- Fix spec file according to rpmlint rules
+- Fix for 64 bits compatibility
