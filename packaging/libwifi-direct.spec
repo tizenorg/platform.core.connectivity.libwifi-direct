@@ -5,6 +5,7 @@ Release:    1
 Group:      Connectivity/Wireless
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
+Source1001: 	libwifi-direct.manifest
 BuildRequires:  pkgconfig(dbus-glib-1)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(vconf)
@@ -23,6 +24,7 @@ wifi direct library (Shared Library) (Developement)
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %ifarch %{arm}
 export ARCH=arm
@@ -45,7 +47,7 @@ cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{na
 %postun -p /sbin/ldconfig
 
 %files
-%manifest libwifi-direct.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/libwifi-direct.so
 %{_libdir}/libwifi-direct.so.0
@@ -53,6 +55,7 @@ cp %{_builddir}/%{buildsubdir}/LICENSE.APLv2 %{buildroot}/usr/share/license/%{na
 /usr/share/license/%{name}
 
 %files devel 
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/wifi-direct.pc
 %{_includedir}/wifi-direct/wifi-direct.h
