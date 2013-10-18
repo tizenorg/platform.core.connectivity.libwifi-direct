@@ -1,6 +1,6 @@
 prefix=@prefix@
 exec_prefix=@prefix@
-libdir=@LIB_INSTALL_DIR@
+libdir=@prefix@/lib
 includedir=@prefix@/include
 
 Name: wifi-direct

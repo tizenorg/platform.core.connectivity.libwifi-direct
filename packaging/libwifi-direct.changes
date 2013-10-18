@@ -1,3 +1,70 @@
-* Tue May 28 2013 Baptiste DURAND <baptiste.durand@eurogiciel.fr> accepted/tizen/20130520.101028@920a701
-- Fix spec file according to rpmlint rules
-- Fix for 64 bits compatibility
+* Tue, 15 Oct 2013 Jiung Yu <jiung.yu@samsung.com> (1.0.0)
+  - add CMD_SET_REQ_WPS_MODE CMD_GET_REQ_WPS_MODE
+
+* Mon, 23 Sep 2013 Jiung Yu <jiung.yu@samsung.com> (0.3.10)
+  - Add wifi_direct_get_passphrase API
+
+* Mon, 29 Jul 2013 Jiung Yu <jiung.yu@samsung.com> (0.3.9)
+  - Modifying IPC parameter
+
+* Fri, 14 Jun 2013 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.8)
+  - Code cleaning
+
+* Mon, 6 May 2013 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.7)
+  - Prevent issue fixed
+
+* Thu, 2 May 2013 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.6)
+  - Boilerplate updated
+
+* Tue, 23 Apr 2013 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.5)
+  - Prevent issue resolved
+
+* Sun, 3 Jan 2013 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.4)
+  - Fix bug of invitation behavior
+
+* Fri, 25 Jan 2013 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.3)
+  - Package Update
+
+* Tue, 18 Dec 2012 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.2)
+  - DLog macro is changed
+
+* Tue, 11 Dec 2012 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.1)
+  - Implementation of wifi_direct_get_device_name / wifi_direct_set_device_name
+  - Implementation of persistent mode
+
+* Fri, 23 Nov 2012 Gibyoung Kim <lastkgb.kim@samsung.com> (0.3.0)
+  - Update from private
+
+* Changes before version 0.3.0
+  - Install vconf keys with -i option
+  - changed writing option of vconftool to solve get ip address problerm.
+  - modified the activation problerm (changed plugin so)
+  - modified the activation problerm
+  - Fix emulator build errro.
+  - changed the binary of wifi-direct-manager.
+  - modified to loading binary of wifi-direct-manager when installing package.
+  - tagging "tizen_build"
+  - stripped package
+  - applied new APIs.
+  - package version update
+  - IP lease (DHCP) event is added.
+  - package update
+  - added new APIs for bada
+  - Wi-Fi Direct Library initial upload
+  - fixed i386 build break
+  - modified the defect of displaying popup
+  - modified spec file / modified the foreach API
+  - Check socket fd is writable to avoid accessing a closed socket fd.
+  - applied the changed dbus interface name of SONET
+  - fixed build dependancy problerm
+  - Applied C API style (Phase 2)
+  - changed connection callback function / changed deactivation oem to excute wifi-direct drive off
+  - added launching system popup application / fixed disconnection defect
+  - fixed i386 build error
+  - Applied C API style
+  - Rollback to wifi-direct_0.0.6 + sonet dbus name change(com.samsung.sonet->net.sonet)
+  - Fixed S1-1045 (wl0.1 default interface issue) / updated doxygen
+  - Fixed i386 build error issue
+  - Fixed uploading issue
+  - Applied new release
+  - debian/changelog

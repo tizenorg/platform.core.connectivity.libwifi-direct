@@ -116,7 +116,7 @@ typedef enum
  */
 typedef enum
 {
-	WIFI_DIRECT_SECONDARY_DEVICE_TYPE_COMPUTER_PC = 1,				/**< */
+	WIFI_DIRECT_SECONDARY_DEVICE_TYPE_COMPUTER_PC = 1,			/**< */
 	WIFI_DIRECT_SECONDARY_DEVICE_TYPE_COMPUTER_SERVER = 2,		/**< */
 	WIFI_DIRECT_SECONDARY_DEVICE_TYPE_COMPUTER_MEDIA_CTR = 3,	/**< */
 	WIFI_DIRECT_SECONDARY_DEVICE_TYPE_COMPUTER_UMPC = 4,		/**< */
@@ -195,7 +195,6 @@ typedef enum
 	WIFI_DIRECT_PRIMARY_DEVICE_TYPE_AUDIO = 11,		/**< */
 	WIFI_DIRECT_PRIMARY_DEVICE_TYPE_OTHER = 255			/**< */
 } wifi_direct_primary_device_type_e;
-
 
 /**
 * @brief Enumeration for Wi-Fi WPS type
@@ -305,8 +304,6 @@ typedef void (*wifi_direct_connection_state_changed_cb) (int error_code,
 														 wifi_direct_connection_state_e connection_state,
 														 const char *mac_address,
 														 void *user_data);
-
-
 
 /**
 * @brief Called when IP address of client is assigned when your device is group owner.
@@ -2067,6 +2064,57 @@ int wifi_direct_get_secondary_device_type(wifi_direct_secondary_device_type_e *t
 int wifi_direct_accept_connection(char *mac_address);
 
 
+/*****************************************************************************************/
+/* wifi_direct_get_passphrase API function prototype
+ * int wifi_direct_get_passphrase(char** passphrase)
+ */
+/**
+ * \brief If a client create Group (Soft AP), this API shall get wpa password. \n
+ * @param passphrase              Pointer to store wpa password. Application must free this memory.
+ *
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ * - WIFI_DIRECT_ERROR_NONE on success \n
+ * - WIFI_DIRECT_ERROR_OPERATION_FAILED for "Unkown error" \n
+ * - WIFI_DIRECT_ERROR_OUT_OF_MEMORY for "Out of memory" \n
+ * - WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for "I/O error" \n
+ * - WIFI_DIRECT_ERROR_NOT_PERMITTED for "Operation not permitted" \n
+ * - WIFI_DIRECT_ERROR_INVALID_PARAMETER for "Invalid function parameter" \n
+ * - WIFI_DIRECT_ERROR_RESOURCE_BUSY for "Device or resource busy" \n
+ * - WIFI_DIRECT_ERROR_STRANGE_CLIENT for "Invalid Client" \n
+ *
+ * \par Prospective Clients:
+ * External Apps.
+ *
+ * \code
+ *
+ * #include <wifi-direct.h>
+ *
+ * void foo()
+ * {
+ * int  result;
+ * char* wpa = NULL;
+ *
+ * result=wifi_direct_get_passphrase(&wpa);
+ *
+ * if(result == WIFI_DIRECT_ERROR_NONE)........//getting wpa passphrase is successful
+ *
+ * free(wpa); // Application should free the memory
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_get_passphrase(char **passphrase);
+
 
 /*****************************************************************************************/
 /* wifi_direct_set_wpa_passphrase API function prototype
@@ -2410,21 +2458,31 @@ typedef bool(*wifi_direct_supported_wps_type_cb)(wifi_direct_wps_type_e type, vo
 int wifi_direct_foreach_supported_wps_types(wifi_direct_supported_wps_type_cb callback, void *user_data);
 
 /**
- * @brief Sets the WPS(Wi-Fi Protected Setup) type.
- * @param[in] type  The type of WPS
- * @retval #WIFI_DIRECT_ERROR_NONE  Successful
- * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
- * @see wifi_direct_foreach_supported_wps_types()
- */
-int wifi_direct_set_wps_type(wifi_direct_wps_type_e type);
-/**
  * @brief Gets the WPS(Wi-Fi Protected Setup) type.
  * @param[out] type  The type of WPS
  * @retval #WIFI_DIRECT_ERROR_NONE  Successful
  * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
  * @see wifi_direct_foreach_supported_wps_types()
  */
-int wifi_direct_get_wps_type(wifi_direct_wps_type_e *type);
+int wifi_direct_get_local_wps_type(wifi_direct_wps_type_e *type);
+
+/**
+ * @brief Sets the requested WPS(Wi-Fi Protected Setup) type.
+ * @param[in] type  The type of WPS
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @see wifi_direct_foreach_supported_wps_types()
+ */
+int wifi_direct_set_req_wps_type(wifi_direct_wps_type_e type);
+
+/**
+ * @brief Gets the requested WPS(Wi-Fi Protected Setup) type.
+ * @param[out] type  The type of WPS
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_INVALID_PARAMETER  Invalid parameter
+ * @see wifi_direct_foreach_supported_wps_types()
+ */
+int wifi_direct_get_req_wps_type(wifi_direct_wps_type_e *type);
 
 /**
 * @brief Sets the intent of a group owner.

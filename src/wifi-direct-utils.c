@@ -25,72 +25,14 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#define _GNU_SOURCE		
+#define _GNU_SOURCE
 #include <unistd.h>
-#include <sys/syscall.h>		
+#include <sys/syscall.h>
 
 #include "wifi-direct.h"
 #include "wifi-direct-client-proxy.h"
 #include "wifi-direct-internal.h"
 
-#if 0
-int wfd_gettid()
-{
-#ifdef __NR_gettid
-	return syscall(__NR_gettid);
-#else
-	WDC_LOGE("__NR_gettid is not defined, please include linux/unistd.h ");
-	return -1;
-#endif
-}
-
-char *wfd_trim_path(const char *filewithpath)
-{
-	static char *filename[100];
-	char *strptr = NULL;
-	int start = 0;
-	const char *space = "                                        ";
-	int len = strlen(filewithpath);
-
-	if (len > 20) {
-		strptr = (char *) filewithpath + (len - 20);
-		start = 0;
-	} else if (len < 20) {
-		strptr = (char *) filewithpath;
-		start = 20 - len;
-	}
-	strncpy((char *) filename, space, strlen(space));
-	strncpy((char *) filename + start, strptr, 50);
-
-	return (char *) filename;
-}
-
-char *wfd_debug_print(char *file, int line, char *format, ...)
-{
-	static char buffer_internal[512];
-	char prefix_buffer[64];
-	char *prefix;
-	va_list args;
-	char buf[512];
-	int header_max = 35;
-
-	va_start(args, format);
-	vsnprintf(buf, 512, format, args);
-	va_end(args);
-
-	snprintf(prefix_buffer, 64, "[%s:%d,%d]", file, line, wfd_gettid());
-	int len = strlen(prefix_buffer);
-	if (len > header_max) {
-		prefix = prefix_buffer + (len - header_max);
-	} else {
-		prefix = prefix_buffer;
-	}
-
-	snprintf(buffer_internal, 512, "%s%s", prefix, buf);
-
-	return buffer_internal;
-}
-#endif
 
 char *wfd_print_state(wifi_direct_state_e s)
 {

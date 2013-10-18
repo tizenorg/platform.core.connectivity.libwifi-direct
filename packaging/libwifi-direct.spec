@@ -1,8 +1,8 @@
 Name:       libwifi-direct
-Summary:    Wifi direct library
-Version:    0.3.7
+Summary:    Wifi Direct Library
+Version:    1.0.0
 Release:    1
-Group:      Connectivity/Wireless
+Group:      Network & Connectivity/Wireless 
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1001: 	libwifi-direct.manifest
@@ -15,12 +15,12 @@ BuildRequires:  gettext-devel
 wifi direct library (Shared Library)
 
 %package devel 
-Summary:    Wifi direct library (Shared Library) (Developement)
+Summary:    Wifi Direct Library (Shared Library) (Development)
 Group:      Development/Libraries
 Requires:   %{name} = %{version}-%{release}
 
 %description devel
-wifi direct library (Shared Library) (Developement)
+wifi direct library (Shared Library) (Development)
 
 %prep
 %setup -q
