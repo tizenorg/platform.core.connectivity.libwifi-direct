@@ -55,6 +55,7 @@ typedef enum
 	WIFI_DIRECT_ERROR_AUTH_FAILED = -0x00008000|0x0206,  /**< Authentication failed */
 	WIFI_DIRECT_ERROR_OPERATION_FAILED = -0x00008000|0x0207,  /**< Operation failed */
 	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT = -0x00008000|0x0208,  /**< Too many client */
+	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED = -0x00008000|0x0209,  /**< Already initialized client */
 	WIFI_DIRECT_ERROR_CONNECTION_CANCELED,	/**< Connection canceled by local device */
 } wifi_direct_error_e;
 

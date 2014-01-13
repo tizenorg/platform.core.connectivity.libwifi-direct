@@ -1,3 +1,5 @@
+* Fri, 10 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.5)
+  - clean the code, add ALREADY_INITITALIZED error and change some commands
 * Fri, 10 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.4)
   - Add cancel_connection function
 

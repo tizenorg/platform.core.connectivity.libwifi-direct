@@ -235,6 +235,8 @@ static char *__wfd_print_error(wifi_direct_error_e error)
 		return "WIFI_DIRECT_ERROR_OPERATION_FAILED";
 	case WIFI_DIRECT_ERROR_TOO_MANY_CLIENT:
 		return "WIFI_DIRECT_ERROR_TOO_MANY_CLIENT";
+	case WIFI_DIRECT_ERROR_ALREADY_INITIALIZED:
+		return "WIFI_DIRECT_ERROR_ALREADY_INITIALIZED";
 	default:
 		WDC_LOGE("Invalid error value: [%d]", error);
 		return "Invalid error";
@@ -371,8 +373,8 @@ char *__wfd_client_print_cmd(wifi_direct_cmd_e cmd)
 		return "WIFI_DIRECT_CMD_GET_REQ_WPS_MODE";
 	case WIFI_DIRECT_CMD_GET_CONNECTED_PEERS_INFO:
 		return "WIFI_DIRECT_CMD_GET_CONNECTED_PEERS_INFO";
-	case WIFI_DIRECT_CMD_CANCEL_GROUP:
-		return "WIFI_DIRECT_CMD_CANCEL_GROUP";
+	case WIFI_DIRECT_CMD_DESTROY_GROUP:
+		return "WIFI_DIRECT_CMD_DESTROY_GROUP";
 	case WIFI_DIRECT_CMD_DISCONNECT:
 		return "WIFI_DIRECT_CMD_DISCONNECT";
 	case WIFI_DIRECT_CMD_SET_GO_INTENT:
@@ -395,8 +397,8 @@ char *__wfd_client_print_cmd(wifi_direct_cmd_e cmd)
 		return "WIFI_DIRECT_CMD_IS_DISCOVERABLE";
 	case WIFI_DIRECT_CMD_IS_LISTENING_ONLY:
 		return "WIFI_DIRECT_CMD_IS_LISTENING_ONLY";
-	case WIFI_DIRECT_CMD_GET_OWN_GROUP_CHANNEL:
-		return "WIFI_DIRECT_CMD_GET_OWN_GROUP_CHANNEL";
+	case WIFI_DIRECT_CMD_GET_OPERATING_CHANNEL:
+		return "WIFI_DIRECT_CMD_GET_OPERATING_CHANNEL";
 	case WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP:
 		return "WIFI_DIRECT_CMD_ACTIVATE_PERSISTENT_GROUP";
 	case WIFI_DIRECT_CMD_DEACTIVATE_PERSISTENT_GROUP:
@@ -680,34 +682,6 @@ static gboolean __wfd_client_process_event(GIOChannel *source,
 
 	return TRUE;
 }
-static int __wfd_client_read_more_data(int sockfd, char *dataptr, int datalen)
-{
-	__WDC_LOG_FUNC_START__;
-	int rbytes = 0;
-
-	if (sockfd < SOCK_FD_MIN) {
-		WDC_LOGE("Error!!! Invalid socket FD [%d]", sockfd);
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
-	}
-
-	if (!dataptr || datalen <= 0) {
-		WDC_LOGE("Error!!! Invalid parameter");
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
-	}
-
-	errno = 0;
-	rbytes = __wfd_client_read_socket(sockfd, (char*) dataptr, datalen);
-	if (rbytes <= 0) {
-		WDC_LOGE("Error!!! reading response from CM.[%s]", strerror(errno));
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_OPERATION_FAILED;
-	}
-
-	__WDC_LOG_FUNC_END__;
-	return WIFI_DIRECT_ERROR_NONE;
-}
 
 void __wfd_client_print_entry_list(wfd_discovery_entry_s *list, int num)
 {
@@ -759,28 +733,6 @@ void __wfd_client_print_persistent_group_info(wfd_persistent_group_info_s *list,
 	}
 	WDC_LOGD("------------------------------------------\n");
 }
-
-void __wfd_client_print_config_data(wfd_config_data_s *config)
-{
-       if (config == NULL)
-               return;
-
-       WDC_LOGD("Operating channel = [%d]", config->channel);
-       WDC_LOGD("WPS method = [%d, %s]", config->wps_config,
-                               (config->wps_config == WIFI_DIRECT_WPS_TYPE_PBC) ? 
-                                               "Pushbutton" : (config->wps_config == WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY)
-                                                       ? "Display" : "Keypad");
-
-       WDC_LOGD("Max client = [%d]", config->max_clients);
-       WDC_LOGD("grp_owner_intent = [%d]", config->group_owner_intent);
-       WDC_LOGD("hide-SSID = [%d]", config->hide_SSID);
-       WDC_LOGD("want_persistent_group = [%d]", config->want_persistent_group);
-       WDC_LOGD("auto_connection = [%d]", config->auto_connection);
-       WDC_LOGD("primary_dev_type = [%d]", config->primary_dev_type);
-       WDC_LOGD("secondary_dev_type = [%d]", config->secondary_dev_type);
-}
-
-
 
 static int __wfd_client_async_event_init(int clientid)
 {
@@ -849,7 +801,7 @@ int wifi_direct_initialize(void)
 	if (client_info->is_registered == TRUE) {
 		WDC_LOGW("Warning!!! Already registered\nUpdate user data and callback!");
 		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_NONE;
+		return WIFI_DIRECT_ERROR_ALREADY_INITIALIZED;
 	}
 
 	errno = 0;
@@ -1824,7 +1776,7 @@ int wifi_direct_destroy_group(void)
 	memset(&req, 0, sizeof(wifi_direct_client_request_s));
 	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
 
-	req.cmd = WIFI_DIRECT_CMD_CANCEL_GROUP;
+	req.cmd = WIFI_DIRECT_CMD_DESTROY_GROUP;
 	req.client_id = client_info->client_id;
 
 	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
@@ -2069,8 +2021,7 @@ int wifi_direct_get_max_clients(int *max)
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
-/* Deprecated */
-int wifi_direct_get_own_group_channel(int* channel)
+int wifi_direct_get_operating_channel(int *channel)
 {
 	__WDC_LOG_FUNC_START__;
 	wifi_direct_client_info_s *client_info = __wfd_get_control();
@@ -2094,7 +2045,7 @@ int wifi_direct_get_own_group_channel(int* channel)
 	memset(&req, 0, sizeof(wifi_direct_client_request_s));
 	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
 
-	req.cmd = WIFI_DIRECT_CMD_GET_OWN_GROUP_CHANNEL;
+	req.cmd = WIFI_DIRECT_CMD_GET_OPERATING_CHANNEL;
 	req.client_id = client_info->client_id;
 
 	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
@@ -2119,7 +2070,7 @@ int wifi_direct_get_passphrase(char** passphrase)
 	wifi_direct_client_request_s req;
 	wifi_direct_client_response_s rsp;
 	char la_passphrase[WIFI_DIRECT_WPA_LEN+1] = {0,};
-	int status = WIFI_DIRECT_ERROR_NONE;
+	int res = WIFI_DIRECT_ERROR_NONE;
 
 	if ((client_info->is_registered == false) ||
 			(client_info->client_id == WFD_INVALID_ID)) {
@@ -2140,34 +2091,10 @@ int wifi_direct_get_passphrase(char** passphrase)
 	req.cmd = WIFI_DIRECT_CMD_GET_PASSPHRASE;
 	req.client_id = client_info->client_id;
 
-	status = __wfd_client_send_request(client_info->sync_sockfd, &req,
-								  sizeof(wifi_direct_client_request_s));
-	if (status != WIFI_DIRECT_ERROR_NONE) {
-		WDC_LOGE("Error!!! writing to socket[%s]", __wfd_print_error(status));
-		__wfd_reset_control();
+	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
+	if (res != WIFI_DIRECT_ERROR_NONE) {
 		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	}
-
-	status = __wfd_client_read_socket(client_info->sync_sockfd, (char*) &rsp,
-								  sizeof(wifi_direct_client_response_s));
-	if (status <= 0) {
-		WDC_LOGE("Error!!! reading socket, status = %d", status);
-		__wfd_reset_control();
-		__WDC_LOG_FUNC_END__;
-		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
-	} else {
-		if (rsp.cmd == WIFI_DIRECT_CMD_GET_PASSPHRASE) {
-			if (rsp.result != WIFI_DIRECT_ERROR_NONE) {
-				WDC_LOGE("Error!!! Result received = %d", rsp.result);
-				WDC_LOGE("Error!!! [%s]", __wfd_print_error(rsp.result));
-				__WDC_LOG_FUNC_END__;
-				return rsp.result;
-			}
-		} else {
-			WDC_LOGE("Error!!! Invalid resp cmd = %d", rsp.cmd);
-			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
-		}
+		return res;
 	}
 
 	WDC_LOGD("wifi_direct_get_wpa_passphrase() SUCCESS");
