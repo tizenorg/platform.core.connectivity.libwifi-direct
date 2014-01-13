@@ -93,6 +93,7 @@ typedef struct
 	void *user_data_for_cb_connection;
 	void *user_data_for_cb_ip_assigned;
 
+	pthread_mutex_t mutex;
 } wifi_direct_client_info_s;
 
 extern char *wfd_debug_print(char *file, int line, char *format, ...);

@@ -1,6 +1,6 @@
 Name:       libwifi-direct
 Summary:    Wifi Direct Library
-Version:    1.0.0
+Version:    1.0.3
 Release:    1
 Group:      Network & Connectivity/Wireless 
 License:    Apache-2.0
@@ -11,6 +11,7 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  cmake
 BuildRequires:  gettext-devel
+
 %description
 wifi direct library (Shared Library)
 
