@@ -760,7 +760,6 @@ void __wfd_client_print_persistent_group_info(wfd_persistent_group_info_s *list,
 	WDC_LOGD("------------------------------------------\n");
 }
 
-
 void __wfd_client_print_config_data(wfd_config_data_s *config)
 {
        if (config == NULL)
@@ -1462,6 +1461,41 @@ int wifi_direct_connect(const char *mac_address)
 	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;
 }
+
+int wifi_direct_cancel_connection(const char *mac_address)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	int res = WIFI_DIRECT_ERROR_NONE;
+
+	if ((client_info->is_registered == false)
+		|| (client_info->client_id == WFD_INVALID_ID))
+	{
+		WDC_LOGE("Client is NOT registered.");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_CANCEL_CONNECTION;
+	req.client_id = client_info->client_id;
+	macaddr_atoe(mac_address, req.data.mac_addr);
+
+	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
+	if (res != WIFI_DIRECT_ERROR_NONE) {
+		__WDC_LOG_FUNC_END__;
+		return res;
+	}
+	WDC_LOGD("wifi_direct_cancel_connect() SUCCESS");
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
 
 int wifi_direct_reject_connection(const char *mac_address)
 {

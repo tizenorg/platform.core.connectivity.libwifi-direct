@@ -1147,6 +1147,29 @@ int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb callback
  ******************************************************************************/
 int wifi_direct_connect(const char *mac_address);
 
+/**
+ * @brief Cancel the connection now in progress .
+ * @param[in] mac_address  The MAC address of rejected device.
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+ * @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+ * @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+ * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+ */
+int wifi_direct_cancel_connection(const char *mac_address);
+
+/**
+ * @brief Reject the connection request from other device now in progress.
+ * @param[in] mac_address  The MAC address of rejected device.
+ * @retval #WIFI_DIRECT_ERROR_NONE  Successful
+ * @retval #WIFI_DIRECT_ERROR_OPERATION_FAILED  Operation failed
+ * @retval #WIFI_DIRECT_ERROR_COMMUNICATION_FAILED  Communication failed
+ * @retval #WIFI_DIRECT_ERROR_NOT_PERMITTED  Operation not permitted
+ * @retval #WIFI_DIRECT_ERROR_NOT_INITIALIZED  Not initialized
+ * @retval #WIFI_DIRECT_ERROR_RESOURCE_BUSY  Device or resource busy
+ */
+int wifi_direct_reject_connection(const char *mac_address);
 
 /*****************************************************************************************/
 /* wifi_direct_disconnect_all API function prototype
