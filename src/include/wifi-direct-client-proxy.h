@@ -69,7 +69,7 @@
 
 #endif /** _DLOG_UTIL */
 
-#define SOCK_FD_MIN 3
+#define SOCK_FD_MIN 0
 #define MACSTR_LEN 18
 #define MACADDR_LEN 6
 #define IPSTR_LEN 16
