@@ -1,3 +1,6 @@
+* Fri, 10 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.1)
+  - Modifying internal APIs
+
 * Tue, 15 Oct 2013 Jiung Yu <jiung.yu@samsung.com> (1.0.0)
   - add CMD_SET_REQ_WPS_MODE CMD_GET_REQ_WPS_MODE
 

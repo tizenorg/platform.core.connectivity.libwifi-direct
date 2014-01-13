@@ -55,6 +55,7 @@ typedef enum
 	WIFI_DIRECT_ERROR_AUTH_FAILED = -0x00008000|0x0206,  /**< Authentication failed */
 	WIFI_DIRECT_ERROR_OPERATION_FAILED = -0x00008000|0x0207,  /**< Operation failed */
 	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT = -0x00008000|0x0208,  /**< Too many client */
+	WIFI_DIRECT_ERROR_CONNECTION_CANCELED,	/**< Connection canceled by local device */
 } wifi_direct_error_e;
 
 /**
@@ -225,6 +226,7 @@ typedef struct
 	int supported_wps_types;  /** The list of supported WPS type. \n
 	The OR operation on #wifi_direct_wps_type_e can be used like #WIFI_DIRECT_WPS_TYPE_PBC | #WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY */
 	char *ssid;  /**< Service set identifier - DEPRECATED */
+	bool is_miracast_device;
 } wifi_direct_discovered_peer_info_s;
 
 
@@ -242,6 +244,7 @@ typedef struct
 	wifi_direct_primary_device_type_e	primary_device_type;  /* primary category of device */
 	int channel;  /* Operating channel */
 	char* ssid;  /**< Service set identifier - DEPRECATED */
+	bool is_miracast_device;
 } wifi_direct_connected_peer_info_s;
 
 /**

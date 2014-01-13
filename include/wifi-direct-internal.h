@@ -195,19 +195,19 @@ typedef struct
  */
 typedef struct
 {
-	bool is_group_owner;
 	char device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1];
 	unsigned char mac_address[6];
+	unsigned char intf_address[6];
 	int channel;
 	bool is_connected;
-	unsigned int services;
+	bool is_group_owner;
 	bool is_persistent_go;
-	unsigned char intf_mac_address[6];
-	unsigned int wps_device_pwd_id;
-	unsigned int wps_cfg_methods;
 	unsigned int category;
 	unsigned int subcategory;
-	bool is_wfd_device	;
+	unsigned int services;
+	unsigned int wps_device_pwd_id;
+	unsigned int wps_cfg_methods;
+	bool is_wfd_device;
 } wfd_discovery_entry_s;
 
 
@@ -219,11 +219,13 @@ typedef struct
 	char device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1];
 	unsigned char ip_address[4];
 	unsigned char mac_address[6];
-	unsigned char intf_mac_address[6];
-	unsigned int services;
+	unsigned char intf_address[6];
+	int channel;
 	bool is_p2p;
 	unsigned short category;
-	int channel;
+	unsigned short subcategory;
+	unsigned int services;
+	bool is_wfd_device;
 } wfd_connected_peer_info_s;
 
 typedef struct
@@ -245,6 +247,7 @@ typedef struct
 {
 	wifi_direct_cmd_e cmd;
 	int client_id;
+	unsigned int cmd_data_len;
 	wifi_direct_client_request_data_s data;
 } wifi_direct_client_request_s;
 

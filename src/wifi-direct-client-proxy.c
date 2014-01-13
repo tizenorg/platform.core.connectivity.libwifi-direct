@@ -559,7 +559,7 @@ void __wfd_client_print_connected_peer_info(wfd_connected_peer_info_s *list, int
 		WDC_LOGD("== Peer index : %d ==\n", i);
 		WDC_LOGD("device_name : %s\n", list[i].device_name);
 		WDC_LOGD("Device MAC : " MACSTR "\n", MAC2STR(list[i].mac_address));
-		WDC_LOGD("Interface MAC : " MACSTR "\n", MAC2STR(list[i].intf_mac_address));
+		WDC_LOGD("Interface MAC : " MACSTR "\n", MAC2STR(list[i].intf_address));
 		WDC_LOGD("services : %d\n", list[i].services);
 		WDC_LOGD("is_p2p : %d\n", list[i].is_p2p);
 		WDC_LOGD("category : %d\n", list[i].category);
@@ -1360,7 +1360,7 @@ int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb cb,
 					peer_list->is_connected = buff[i].is_connected;
 					peer_list->is_persistent_group_owner = buff[i].is_persistent_go;
 					peer_list->interface_address = (char*) calloc(1, MACSTR_LEN);
-					snprintf(peer_list->interface_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].intf_mac_address));
+					snprintf(peer_list->interface_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].intf_address));
 					peer_list->supported_wps_types= buff[i].wps_cfg_methods;
 					peer_list->primary_device_type = buff[i].category;
 					peer_list->secondary_device_type = buff[i].subcategory;
@@ -1795,7 +1795,7 @@ int wifi_direct_foreach_connected_peers(wifi_direct_connected_peer_cb cb,
 			peer_list->mac_address = (char*) calloc(1, MACSTR_LEN);
 			snprintf(peer_list->mac_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].mac_address));
 			peer_list->interface_address = (char*) calloc(1, MACSTR_LEN);
-			snprintf(peer_list->interface_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].intf_mac_address));
+			snprintf(peer_list->interface_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].intf_address));
 			peer_list->p2p_supported = buff[i].is_p2p;
 			peer_list->primary_device_type = buff[i].category;
 			peer_list->channel = buff[i].channel;
@@ -2509,6 +2509,7 @@ int wifi_direct_set_wpa_passphrase(char *passphrase)
 
 	req.cmd = WIFI_DIRECT_CMD_SET_WPA;
 	req.client_id = client_info->client_id;
+	req.cmd_data_len = 64;
 
 	status = __wfd_client_send_request(client_info->sync_sockfd, &req,
 								  sizeof(wifi_direct_client_request_s));
@@ -2520,7 +2521,7 @@ int wifi_direct_set_wpa_passphrase(char *passphrase)
 	}
 	WDC_LOGD("writing msg hdr is success!");
 
-	status = __wfd_client_send_request(client_info->sync_sockfd, passphrase, 64);
+	status = __wfd_client_send_request(client_info->sync_sockfd, passphrase, req.cmd_data_len);
 	if (status != WIFI_DIRECT_ERROR_NONE) {
 		WDC_LOGE("Error!!! writing to socket[%s]", __wfd_print_error(status));
 		__wfd_reset_control();
@@ -2636,6 +2637,7 @@ int wifi_direct_set_wps_pin(char *pin)
 
 	req.cmd = WIFI_DIRECT_CMD_SET_WPS_PIN;
 	req.client_id = client_info->client_id;
+	req.cmd_data_len = WIFI_DIRECT_WPS_PIN_LEN+1;
 
 	status = __wfd_client_send_request(client_info->sync_sockfd, &req,
 								  sizeof(wifi_direct_client_request_s));
