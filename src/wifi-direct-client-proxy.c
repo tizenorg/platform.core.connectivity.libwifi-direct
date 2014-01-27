@@ -786,6 +786,65 @@ static int __wfd_client_async_event_init(int clientid)
 	return sockfd;
 }
 
+static gboolean wfd_client_execute_file(const char *file_path,
+	char *const args[], char *const envs[])
+{
+	pid_t pid = 0;
+	int rv = 0;
+	errno = 0;
+	register unsigned int index = 0;
+
+	while (args[index] != NULL) {
+		WDC_LOGD("[%s]", args[index]);
+		index++;
+	}
+
+	if (!(pid = fork())) {
+		WDC_LOGD("pid(%d), ppid(%d)", getpid(), getppid());
+		WDC_LOGD("Inside child, exec (%s) command", file_path);
+
+		errno = 0;
+		if (execve(file_path, args, envs) == -1) {
+			WDC_LOGE("Fail to execute command (%s)", strerror(errno));
+			exit(1);
+		}
+	} else if (pid > 0) {
+		if (waitpid(pid, &rv, 0) == -1)
+			WDC_LOGD("wait pid (%u) rv (%d)", pid, rv);
+		if (WIFEXITED(rv)) {
+			WDC_LOGD("exited, rv=%d", WEXITSTATUS(rv));
+		} else if (WIFSIGNALED(rv)) {
+			WDC_LOGD("killed by signal %d", WTERMSIG(rv));
+		} else if (WIFSTOPPED(rv)) {
+			WDC_LOGD("stopped by signal %d", WSTOPSIG(rv));
+		} else if (WIFCONTINUED(rv)) {
+			WDC_LOGD("continued");
+		}
+
+		return TRUE;
+	}
+
+	WDC_LOGE("failed to fork (%s)", strerror(errno));
+	return FALSE;
+}
+
+static int __wfd_client_launch_server_dbus(void)
+{
+	gboolean rv = FALSE;
+	const char *path = "/usr/bin/dbus-send";
+	char *const args[] = { "/usr/bin/dbus-send", "--system", "--print-reply", "--dest=net.netconfig", "/net/netconfig/wifi", "net.netconfig.wifi.LaunchDirect", NULL };
+	char *const envs[] = { NULL };
+
+	rv = wfd_client_execute_file(path, args, envs);
+
+	if (rv != TRUE) {
+		WDC_LOGE("Failed to launch wfd-manager");
+		return -1;
+	}
+
+	WDC_LOGD("Successfully launched wfd-manager");
+	return 0;
+}
 
 int wifi_direct_initialize(void)
 {
@@ -826,7 +885,7 @@ int wifi_direct_initialize(void)
 		}
 
 		WDC_LOGD("Launching wfd-server..\n");
-		res = system(WFD_LAUNCH_SERVER_DBUS);
+		res = __wfd_client_launch_server_dbus();
 		if (res == -1)
 			WDC_LOGE("Failed to send dbus msg[%s]", strerror(errno));
 		retry_count--;

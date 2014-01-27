@@ -74,8 +74,6 @@
 #define MACADDR_LEN 6
 #define IPSTR_LEN 16
 #define WFD_SOCK_FILE_PATH "/tmp/wfd_client_socket"
-#define WFD_LAUNCH_SERVER_DBUS "dbus-send --system --print-reply --dest=net.netconfig /net/netconfig/wifi net.netconfig.wifi.LaunchDirect"
-
 typedef struct
 {
 	bool is_registered;

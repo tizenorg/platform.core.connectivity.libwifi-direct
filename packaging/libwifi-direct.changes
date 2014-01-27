@@ -1,5 +1,9 @@
+* Mon, 13 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.6)
+  - Modify the method that launch dbus server not to use system() function
+
 * Fri, 10 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.5)
-  - clean the code, add ALREADY_INITITALIZED error and change some commands
+  - Clean the code, add ALREADY_INITITALIZED error and change some commands
+
 * Fri, 10 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.4)
   - Add cancel_connection function
 

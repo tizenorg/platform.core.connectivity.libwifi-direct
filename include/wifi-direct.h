@@ -323,8 +323,6 @@ typedef void (*wifi_direct_client_ip_address_assigned_cb) (const char *mac_addre
 														 const char *interface_address,
 														 void *user_data);
 
-
-
 /*=============================================================================
 				  	 Wifi Direct Client APIs
 =============================================================================*/
@@ -747,8 +745,6 @@ int wifi_direct_set_client_ip_address_assigned_cb(wifi_direct_client_ip_address_
 * @see wifi_direct_set_connection_state_changed_cb()
 */
 int wifi_direct_unset_client_ip_address_assigned_cb(void);
-
-
 
 
 /*****************************************************************************************/
