@@ -415,6 +415,14 @@ char *__wfd_client_print_cmd(wifi_direct_cmd_e cmd)
 		return "WIFI_DIRECT_CMD_SET_DEVICE_NAME";
 	case WIFI_DIRECT_CMD_SET_OEM_LOGLEVEL:
 		return "WIFI_DIRECT_CMD_SET_OEM_LOGLEVEL";
+	case WIFI_DIRECT_CMD_SERVICE_ADD:
+		return "WIFI_DIRECT_CMD_SERVICE_ADD";
+	case WIFI_DIRECT_CMD_SERVICE_DEL:
+		return "WIFI_DIRECT_CMD_SERVICE_DEL";
+	case WIFI_DIRECT_CMD_SERV_DISC_REQ:
+		return "WIFI_DIRECT_CMD_SERV_DISC_REQ";
+	case WIFI_DIRECT_CMD_SERV_DISC_CANCEL:
+		return "WIFI_DIRECT_CMD_SERV_DISC_CANCEL";
 	default:
 		return "WIFI_DIRECT_CMD_INVALID";
 
@@ -1312,6 +1320,60 @@ int wifi_direct_cancel_discovery(void)
 	return WIFI_DIRECT_ERROR_NONE;
 }
 
+static int get_service_list(char *services, char** result)
+{
+	__WDC_LOG_FUNC_START__;
+	result = NULL;
+	char *pos1 = services;
+	char *pos2 = strdup(services);
+	unsigned int cnt = 0;
+	unsigned int i = 0;
+	unsigned int j = 0;
+
+	if (!services ||	(strlen(services) <= 0)) {
+		WDC_LOGE("Invalid parameters.");
+		__WDC_LOG_FUNC_END__;
+		return 0;
+	}
+
+	pos1 = strtok (pos1,",\n");
+	while (pos1) {
+		cnt++;
+		pos1 = strtok (NULL, ",\n");
+	}
+	WDC_LOGD("Total Service Count = %d", cnt);
+
+	if (cnt > 0) {
+		result = (char**) calloc(cnt, sizeof(char *));
+		if (!result) {
+			WDC_LOGE("Failed to allocate memory for result");
+			return 0;
+		}
+		pos1 = pos2;
+		pos2 = strtok (pos2,",\n");
+		while (pos2 != NULL) {
+			char *s = strchr(pos2, ' ');
+			if (s) {
+				*s = '\0';
+				result[i++] = strdup(pos2);
+				pos2 = strtok (NULL, ",\n");
+			}
+		}
+	}
+
+	free(pos1);
+	if (cnt == i) {
+		return cnt;
+	} else {
+		if (result) {
+			for (j=0; j<i && result[j] != NULL; j++)
+				free(result[j]);
+			free(result);
+		}
+		return 0;
+	}
+}
+
 int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb cb,
 												void *user_data)
 {
@@ -1415,8 +1477,8 @@ int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb cb,
 			peer_list->interface_address = (char*) calloc(1, MACSTR_LEN);
 			snprintf(peer_list->interface_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].intf_address));
 			peer_list->supported_wps_types= buff[i].wps_cfg_methods;
+			peer_list->service_count = get_service_list(buff[i].services, peer_list->service_list);
 			peer_list->primary_device_type = buff[i].category;
-			peer_list->is_miracast_device = buff[i].is_wfd_device;
 
 			if (!cb(peer_list, user_data))
 				break;
@@ -1768,7 +1830,7 @@ int wifi_direct_foreach_connected_peers(wifi_direct_connected_peer_cb cb,
 			peer_list->p2p_supported = buff[i].is_p2p;
 			peer_list->primary_device_type = buff[i].category;
 			peer_list->channel = buff[i].channel;
-			peer_list->is_miracast_device = buff[i].is_wfd_device;
+			peer_list->service_count = get_service_list(buff[i].services, peer_list->service_list);
 
 			if (!cb(peer_list, user_data))
 				break;
@@ -3644,6 +3706,350 @@ int wifi_direct_set_p2poem_loglevel(int increase_log_level)
 		req.data.int1 = false;
 	else
 		req.data.int1 = true;
+
+	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
+	if (res != WIFI_DIRECT_ERROR_NONE) {
+		__WDC_LOG_FUNC_END__;
+		return res;
+	}
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+int wifi_direct_service_add(wifi_direct_service_type_e type, char *data1, char *data2)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	char *buf = NULL;
+	char *ptr = NULL;
+	int status = WIFI_DIRECT_ERROR_NONE;
+	int len = 0;
+	int data_len=0;
+
+	if (!data1 && !strlen(data1)) {
+		WDC_LOGE("NULL Param [data1]!");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered.");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (type >= WIFI_DIRECT_SERVICE_BONJOUR &&
+			type <= WIFI_DIRECT_SERVICE_VENDORSPEC) {
+		WDC_LOGD("Param service_type [%d]", type);
+	} else {
+		WDC_LOGE("Invalid Param [type]!");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+//TODO: modify the method to handle the NULL or zero length data
+
+	if (data2 && (data_len=strlen(data2)))
+		len =data_len +strlen(data1)+2;
+	else
+		len = strlen(data1)+1;
+
+	WDC_LOGD("data1 [%s], data2 [%s], len [%d]", data1, data2, len);
+	buf= calloc(sizeof(wifi_direct_client_request_s)+len, sizeof(char));
+	if (NULL == buf) {
+		WDC_LOGE("Memory can't be allocated for Buf\n");
+		return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
+	}
+
+	req.cmd = WIFI_DIRECT_CMD_SERVICE_ADD;
+	req.client_id = client_info->client_id;
+	req.data.int1 = type;
+	req.data.int2 = data_len;
+	req.cmd_data_len = len;
+
+	memcpy(buf, &req, sizeof(wifi_direct_client_request_s));
+	ptr = buf;
+	ptr += sizeof(wifi_direct_client_request_s);
+	if(data_len)
+		snprintf(ptr, len, "%s %s", data2, data1);
+	else
+		snprintf(ptr, len, "%s", data1);
+
+	pthread_mutex_lock(&g_client_info.mutex);
+	status = __wfd_client_write_socket(client_info->sync_sockfd, buf,
+									sizeof(wifi_direct_client_request_s) + len);
+	free(buf);
+	if (status != WIFI_DIRECT_ERROR_NONE) {
+		WDC_LOGE("Error!!! writing to socket, Errno = %s", strerror(errno));
+		__wfd_reset_control();
+		pthread_mutex_unlock(&g_client_info.mutex);
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+	WDC_LOGD("Success writing data to the socket!");
+
+	status = __wfd_client_read_socket(client_info->sync_sockfd, (char*) &rsp,
+												sizeof(wifi_direct_client_response_s));
+	pthread_mutex_unlock(&g_client_info.mutex);
+	if (status <= 0) {
+		WDC_LOGE("Error!!! reading socket, status = %d", status);
+		__wfd_reset_control();
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	} else {
+		if (rsp.cmd == WIFI_DIRECT_CMD_SERVICE_ADD) {
+			if (rsp.result != WIFI_DIRECT_ERROR_NONE) {
+				WDC_LOGD("Error!!! Result received = %d", rsp.result);
+				WDC_LOGD("Error!!! [%spin]", __wfd_print_error(rsp.result));
+				__WDC_LOG_FUNC_END__;
+				return rsp.result;
+			}
+		} else {
+			WDC_LOGE("Error!!! Invalid resp cmd = %d", rsp.cmd);
+			__WDC_LOG_FUNC_END__;
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+	}
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+int wifi_direct_service_del(wifi_direct_service_type_e type, char *data1, char *data2)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	char *buf = NULL;
+	char *ptr = NULL;
+	int status = WIFI_DIRECT_ERROR_NONE;
+	int len = 0;
+	int data_len=0;
+
+	if (!data1 && !strlen(data1)) {
+		WDC_LOGE("NULL Param [data1]!");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered.");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (type >= WIFI_DIRECT_SERVICE_BONJOUR &&
+			type <= WIFI_DIRECT_SERVICE_VENDORSPEC) {
+		WDC_LOGD("Param service_type [%d]", type);
+	} else {
+		WDC_LOGE("Invalid Param [type]!");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+//TODO: modify the method to handle the NULL or zero length data
+
+	if (data2 && (data_len=strlen(data2)))
+		len =data_len +strlen(data1)+2;
+	else
+		len = strlen(data1)+1;
+
+	WDC_LOGD("data1 [%s], data2 [%s], len [%d]", data1, data2, len);
+	buf= calloc(sizeof(wifi_direct_client_request_s) + len, sizeof(char));
+	if (NULL == buf) {
+		WDC_LOGE("Memory can't be allocated for Buf\n");
+		return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
+	}
+
+	req.cmd = WIFI_DIRECT_CMD_SERVICE_DEL;
+	req.client_id = client_info->client_id;
+	req.data.int1 = type;
+	req.data.int2 = data_len;
+	req.cmd_data_len = len;
+
+	memcpy(buf, &req, sizeof(wifi_direct_client_request_s));
+	ptr = buf;
+	ptr += sizeof(wifi_direct_client_request_s);
+	if(data_len)
+		snprintf(ptr, len, "%s %s", data2, data1);
+	else
+		snprintf(ptr, len, "%s", data1);
+
+	pthread_mutex_lock(&g_client_info.mutex);
+	status = __wfd_client_write_socket(client_info->sync_sockfd, buf,
+									sizeof(wifi_direct_client_request_s) + len);
+	free(buf);
+	if (status != WIFI_DIRECT_ERROR_NONE) {
+		WDC_LOGE("Error!!! writing to socket, Errno = %s", strerror(errno));
+		__wfd_reset_control();
+		pthread_mutex_unlock(&g_client_info.mutex);
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+	WDC_LOGD("Success writing data to the socket!");
+
+	status = __wfd_client_read_socket(client_info->sync_sockfd, (char*) &rsp,
+												sizeof(wifi_direct_client_response_s));
+	pthread_mutex_unlock(&g_client_info.mutex);
+	if (status <= 0) {
+		WDC_LOGE("Error!!! reading socket, status = %d", status);
+		__wfd_reset_control();
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	} else {
+		if (rsp.cmd == WIFI_DIRECT_CMD_SERVICE_DEL) {
+			if (rsp.result != WIFI_DIRECT_ERROR_NONE) {
+				WDC_LOGD("Error!!! Result received = %d", rsp.result);
+				WDC_LOGD("Error!!! [%spin]", __wfd_print_error(rsp.result));
+				__WDC_LOG_FUNC_END__;
+				return rsp.result;
+			}
+		} else {
+			WDC_LOGE("Error!!! Invalid resp cmd = %d", rsp.cmd);
+			__WDC_LOG_FUNC_END__;
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+	}
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+
+int wifi_direct_serv_disc_req(char* mac_address, wifi_direct_service_type_e type, char *data1, char *data2)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	unsigned char la_mac_addr[6];
+	char *buf = NULL;
+	char *ptr = NULL;
+	int status = WIFI_DIRECT_ERROR_NONE;
+	int query_len = 0;
+	int data_len = 0;
+
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered.");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (type >= WIFI_DIRECT_SERVICE_BONJOUR &&
+			type <= WIFI_DIRECT_SERVICE_VENDORSPEC) {
+		WDC_LOGD("Param service_type [%d]", type);
+	} else {
+		WDC_LOGE("Invalid Param [type]!");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	if(data2 && (data_len = strlen(data2)))
+		data_len++;
+	if(data1 && (query_len = strlen(data1)))
+		query_len++;
+
+	WDC_LOGD("data [%s], query [%s]", data2, data1);
+	buf= calloc(sizeof(wifi_direct_client_request_s)+data_len+query_len, sizeof(char));
+	if (NULL == buf) {
+		WDC_LOGE("Memory can't be allocated for Buf\n");
+		return WIFI_DIRECT_ERROR_OUT_OF_MEMORY;
+	}
+
+	req.cmd = WIFI_DIRECT_CMD_SERV_DISC_REQ;
+	req.client_id = client_info->client_id;
+	req.data.int1 = type;
+	req.data.int2 = data_len;
+	req.cmd_data_len = data_len+ query_len;
+	macaddr_atoe(mac_address, la_mac_addr);
+	memcpy(req.data.mac_addr, la_mac_addr, MACADDR_LEN);
+
+	memcpy(buf, &req, sizeof(wifi_direct_client_request_s));
+	ptr = buf;
+	ptr += sizeof(wifi_direct_client_request_s);
+
+	if(data_len)
+		snprintf(ptr, data_len+query_len, "%s %s", data2, data1);
+	else if(query_len)
+		snprintf(ptr, query_len, "%s", data1);
+
+	pthread_mutex_lock(&g_client_info.mutex);
+	status = __wfd_client_write_socket(client_info->sync_sockfd, buf,
+									sizeof(wifi_direct_client_request_s) + req.cmd_data_len);
+	free(buf);
+	if (status != WIFI_DIRECT_ERROR_NONE) {
+		WDC_LOGE("Error!!! writing to socket, Errno = %s", strerror(errno));
+		__wfd_reset_control();
+		pthread_mutex_unlock(&g_client_info.mutex);
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+	WDC_LOGD("Success writing data to the socket!");
+
+	status = __wfd_client_read_socket(client_info->sync_sockfd, (char*) &rsp,
+												sizeof(wifi_direct_client_response_s));
+	pthread_mutex_unlock(&g_client_info.mutex);
+	if (status <= 0) {
+		WDC_LOGE("Error!!! reading socket, status = %d", status);
+		__wfd_reset_control();
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	} else {
+		if (rsp.cmd == WIFI_DIRECT_CMD_SERV_DISC_REQ) {
+			if (rsp.result != WIFI_DIRECT_ERROR_NONE) {
+				WDC_LOGD("Error!!! Result received = %d", rsp.result);
+				WDC_LOGD("Error!!! [%spin]", __wfd_print_error(rsp.result));
+				__WDC_LOG_FUNC_END__;
+				return rsp.result;
+			}
+		} else {
+			WDC_LOGE("Error!!! Invalid resp cmd = %d", rsp.cmd);
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+	}
+	WDC_LOGD("handle = [%d]\n", (int) rsp.param1);
+	__WDC_LOG_FUNC_END__;
+	return rsp.param1;
+}
+
+int wifi_direct_serv_disc_cancel(int handle)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	int res = WIFI_DIRECT_ERROR_NONE;
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_SERV_DISC_CANCEL;
+	req.client_id = client_info->client_id;
+	req.data.int1 = handle;
 
 	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
 	if (res != WIFI_DIRECT_ERROR_NONE) {

@@ -62,6 +62,8 @@ typedef unsigned int ipv4_addr_t;
 #define WIFI_DIRECT_MAX_DEVICE_NAME_LEN 32
 #define WIFI_DIRECT_WPS_PIN_LEN 8
 #define WIFI_DIRECT_MAC_ADDRESS_INFO_FILE "/opt/etc/.mac.info"
+#define WIFI_DIRECT_MAX_SERVICES_LEN 1024
+#define WIFI_DIRECT_MAX_SERVICE_NAME_LEN 256
 
 #define VCONFKEY_IFNAME "memory/private/wifi_direct_manager/p2p_ifname"
 #define VCONFKEY_LOCAL_IP "memory/private/wifi_direct_manager/p2p_local_ip"
@@ -134,6 +136,11 @@ typedef enum
 
 	WIFI_DIRECT_CMD_SET_OEM_LOGLEVEL,
 
+	WIFI_DIRECT_CMD_SERVICE_ADD,
+	WIFI_DIRECT_CMD_SERVICE_DEL,
+	WIFI_DIRECT_CMD_SERV_DISC_REQ,
+	WIFI_DIRECT_CMD_SERV_DISC_CANCEL,
+
 	WIFI_DIRECT_CMD_MAX
 } wifi_direct_cmd_e;
 
@@ -203,10 +210,10 @@ typedef struct
 	bool is_persistent_go;
 	unsigned int category;
 	unsigned int subcategory;
-	unsigned int services;
 	unsigned int wps_device_pwd_id;
 	unsigned int wps_cfg_methods;
 	bool is_wfd_device;
+	char services[WIFI_DIRECT_MAX_SERVICES_LEN + 1];
 } wfd_discovery_entry_s;
 
 
@@ -223,8 +230,8 @@ typedef struct
 	bool is_p2p;
 	unsigned short category;
 	unsigned short subcategory;
-	unsigned int services;
 	bool is_wfd_device;
+	char services[WIFI_DIRECT_MAX_SERVICES_LEN + 1];
 } wfd_connected_peer_info_s;
 
 typedef struct

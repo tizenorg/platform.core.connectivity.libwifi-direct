@@ -1,3 +1,6 @@
+* Mon, 27 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.7)
+  - Add Wifi Direct Service Discovery API and data structure
+
 * Mon, 13 Jan 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.6)
   - Modify the method that launch dbus server not to use system() function
 

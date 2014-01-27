@@ -210,6 +210,19 @@ typedef enum {
 
 
 /**
+* @brief Service Discovery type enumerations
+*/
+typedef enum
+{
+	WIFI_DIRECT_SERVICE_ALL,
+	WIFI_DIRECT_SERVICE_BONJOUR,
+	WIFI_DIRECT_SERVICE_UPNP,
+	WIFI_DIRECT_SERVICE_WSDISCOVERY,
+	WIFI_DIRECT_SERVICE_WIFIDISPLAY,
+	WIFI_DIRECT_SERVICE_VENDORSPEC,
+} wifi_direct_service_type_e;
+
+/**
  * @struct wifi_direct_discovered_peer_info_s
  * Wi-Fi Direct buffer structure to store result of peer discovery
  */
@@ -227,6 +240,8 @@ typedef struct
 	int supported_wps_types;  /** The list of supported WPS type. \n
 	The OR operation on #wifi_direct_wps_type_e can be used like #WIFI_DIRECT_WPS_TYPE_PBC | #WIFI_DIRECT_WPS_TYPE_PIN_DISPLAY */
 	char *ssid;  /**< Service set identifier - DEPRECATED */
+	unsigned int service_count;
+	char **service_list;
 	bool is_miracast_device;
 } wifi_direct_discovered_peer_info_s;
 
@@ -245,6 +260,8 @@ typedef struct
 	wifi_direct_primary_device_type_e	primary_device_type;  /* primary category of device */
 	int channel;  /* Operating channel */
 	char* ssid;  /**< Service set identifier - DEPRECATED */
+	unsigned int service_count;
+	char **service_list;
 	bool is_miracast_device;
 } wifi_direct_connected_peer_info_s;
 
@@ -2668,6 +2685,213 @@ int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb callba
 */
 int wifi_direct_remove_persistent_group(const char *mac_address, const char *ssid);
 
+/*****************************************************************************************/
+/* wifi_direct_service_add API function prototype
+ * int wifi_direct_service_add(wifi_direct_service_type_e type, char *data1, char *data2)
+ */
+/**
+ * \brief This API shall add the service user expects. \n
+ * @param type              new service type to add. Application must run the new service before.
+ * @param data1             new service query to add. Application must run the new service before.
+ * 								upnp: <service>
+ * 								bonjour: <RDATA hexdump>
+ * 								vendor specific: <service string>
+ * @param data2             new service data to add. Application must run the new service before.
+ * 								upnp: <version hex>
+ * 								bonjour: <query hexdump>
+ * 								vendor specific: NULL
+ *
+ * \see wifi_direct_service_del.
+ * \see wifi_direct_serv_disc_req.
+ * \see wifi_direct_serv_disc_cancel.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_service_add(wifi_direct_service_type_e type, char *data1, char *data2);
+
+/*****************************************************************************************/
+/* wifi_direct_service_del API function prototype
+ * int wifi_direct_service_del(wifi_direct_service_type_e type, char *data1, char *data2)
+ */
+/**
+ * \brief This API shall delete the service user expects. \n
+ * @param type              service type to delete. Application must run and add the service to wpasupplicant before.
+ * @param data1             new service query to delete. Application must run and add the service to wpasupplicant before.
+ * 								upnp: <service>
+ * 								bonjour: <query hexdump>
+ * 								vendor specific: <service string>
+ * @param data2             new service data to delete. Application must run and add the service to wpasupplicant before.
+ * 								upnp: <version hex>
+ * 								bonjour: NULL
+ * 								vendor specific: NULL
+ *
+ * \see wifi_direct_service_add.
+ * \see wifi_direct_serv_disc_req.
+ * \see wifi_direct_serv_disc_cancel.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_service_del(wifi_direct_service_type_e type, char *data1, char *data2);
+
+/*****************************************************************************************/
+/* wifi_direct_service_del API function prototype
+ * int wifi_direct_serv_disc_req(char* MAC, wifi_direct_service_type_e type, char *data1, char *data2)
+ */
+/**
+ * \brief This API shall delete the service user expects. \n
+ * @param MAC               peer MAC address to discover service. this value can be specific MAC address or 00:00:00:00:00:00 as wildcard
+ * @param type              service type to discover. this value can be NULL if this value is not needed.
+ * @param data1             service query to discover. this value can be NULL if this value is not needed.
+ * 								find all : NULL
+ * 								upnp: <service> or NULL for finding all upnp services
+ * 								bonjour: <query hexdump> or NULL for finding all bonjour services
+ * 								vendor specific: <service string> or NULL for finding all vendor specific services
+ * @param data2             service data to discover. this value is mandatory and can be Service Query TLV,
+ * 								find all : NULL
+ * 								upnp: <version hex> or NULL for finding all upnp services
+ * 								bonjour: NULL
+ * 								vendor specific: NULL
+ *
+ * \see wifi_direct_service_add.
+ * \see wifi_direct_service_del.
+ * \see wifi_direct_serv_disc_cancel.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	Request Handle on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_serv_disc_req(char* MAC, wifi_direct_service_type_e type, char *data1, char *data2);
+
+/*****************************************************************************************/
+/* wifi_direct_service_del API function prototype
+ * int wifi_direct_serv_disc_cancel(int handle)
+ */
+/**
+ * \brief This API shall delete the service user expects. \n
+ * @param handle              query handle to delete. Application had requested service discovery to manager and has gotten this handle.
+ *
+ * \see wifi_direct_service_add.
+ * \see wifi_direct_service_del.
+ * \see wifi_direct_serv_disc_req.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_serv_disc_cancel(int handle);
 
 /**
  * @}
