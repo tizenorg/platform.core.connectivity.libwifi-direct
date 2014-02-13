@@ -219,8 +219,16 @@ typedef enum
 	WIFI_DIRECT_SERVICE_UPNP,
 	WIFI_DIRECT_SERVICE_WSDISCOVERY,
 	WIFI_DIRECT_SERVICE_WIFIDISPLAY,
-	WIFI_DIRECT_SERVICE_VENDORSPEC,
+	WIFI_DIRECT_SERVICE_VENDORSPEC = 0xff,
 } wifi_direct_service_type_e;
+
+typedef enum
+{
+	WIFI_DIRECT_DISPLAY_SOURCE,
+	WIFI_DIRECT_DISPLAY_PRIMARY_SINK,
+	WIFI_DIRECT_DISPLAY_SECONDARY_SINK,
+	WIFI_DIRECT_DISPLAY_DUAL_ROLE,
+}wifi_direct_display_type_e;
 
 /**
  * @struct wifi_direct_discovered_peer_info_s
@@ -242,7 +250,7 @@ typedef struct
 	char *ssid;  /**< Service set identifier - DEPRECATED */
 	unsigned int service_count;
 	char **service_list;
-	bool is_miracast_device;
+	bool is_wfd_device;
 } wifi_direct_discovered_peer_info_s;
 
 
@@ -262,7 +270,7 @@ typedef struct
 	char* ssid;  /**< Service set identifier - DEPRECATED */
 	unsigned int service_count;
 	char **service_list;
-	bool is_miracast_device;
+	bool is_wfd_device;
 } wifi_direct_connected_peer_info_s;
 
 /**
@@ -2892,6 +2900,191 @@ int wifi_direct_serv_disc_req(char* MAC, wifi_direct_service_type_e type, char *
  *
  ******************************************************************************/
 int wifi_direct_serv_disc_cancel(int handle);
+
+/*****************************************************************************************/
+/* wifi_direct_init_wifi_display API function prototype
+ * int wifi_direct_init_wifi_display(wifi_direct_display_type type, int port, int hdcp)
+ */
+/**
+ * \brief This API shall initialize the wifi display. \n
+ * @param type              wifi direct display device type.
+ * @param port              port number that is used by wifi direct display.
+ * @param hdcp              indicate that hdcp is support capability.
+ *
+ * \see wifi_direct_deinit_wifi_display.
+ * \see wifi_direct_get_display_port
+ * \see wifi_direct_get_display_type.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_init_wifi_display(wifi_direct_display_type_e type, int port, int hdcp);
+
+/*****************************************************************************************/
+/* wifi_direct_deinit_wifi_display API function prototype
+ * int wifi_direct_deinit_wifi_display(void)
+ */
+/**
+ * \brief This API shall deinitialize the wifi direct display. \n
+ *
+ * \see wifi_direct_init_wifi_display.
+ * \see wifi_direct_get_display_port
+ * \see wifi_direct_get_display_type.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_deinit_wifi_display(void);
+
+/*****************************************************************************************/
+/* wifi_direct_service_del API function prototype
+ * int wifi_direct_get_display_port(int *port)
+ */
+/**
+ * \brief This API shall delete the service user expects. \n
+ * @param port              TCP control port of this wifi direct diplay device. Application had enabled the wifi direct display before use this function.
+ *
+ * \see wifi_direct_init_wifi_display.
+ * \see wifi_direct_deinit_wifi_display.
+ * \see wifi_direct_get_display_type.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_get_display_port(int *port);
+
+/*****************************************************************************************/
+/* wifi_direct_service_del API function prototype
+ * int wifi_direct_get_display_type(wifi_direct_display_type *type)
+ */
+/**
+ * \brief This API shall delete the service user expects. \n
+ * @param handle              wifi direct display type of this device. Application had enabled the wifi direct display before use this function.
+ *
+ * \see wifi_direct_init_wifi_display.
+ * \see wifi_direct_deinit_wifi_display.
+ * \see wifi_direct_get_display_port.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_get_display_type(wifi_direct_display_type_e *type);
 
 /**
  * @}
