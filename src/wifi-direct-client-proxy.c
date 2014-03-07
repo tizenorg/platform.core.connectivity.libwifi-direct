@@ -431,6 +431,10 @@ char *__wfd_client_print_cmd(wifi_direct_cmd_e cmd)
 		return "WIFI_DIRECT_CMD_GET_DISPLAY_PORT";
 	case WIFI_DIRECT_CMD_GET_DISPLAY_TYPE:
 		return "WIFI_DIRECT_CMD_GET_DISPLAY_TYPE";
+	case WIFI_DIRECT_CMD_ADD_TO_ACCESS_LIST:
+		return "WIFI_DIRECT_CMD_ADD_TO_ACCESS_LIST";
+	case WIFI_DIRECT_CMD_DEL_FROM_ACCESS_LIST:
+		return "WIFI_DIRECT_CMD_DEL_FROM_ACCESS_LIST";
 	default:
 		return "WIFI_DIRECT_CMD_INVALID";
 
@@ -4212,7 +4216,7 @@ int wifi_direct_get_display_port(int *port)
 		__WDC_LOG_FUNC_END__;
 		return res;
 	}
-	WDC_LOGD("wifi_direct_is_autoconnection_mode() SUCCESS");
+	WDC_LOGD("wifi_direct_get_display_port() SUCCESS");
 	*port = (int) rsp.param1;
 
 	__WDC_LOG_FUNC_END__;
@@ -4251,8 +4255,91 @@ int wifi_direct_get_display_type(wifi_direct_display_type_e *type)
 		__WDC_LOG_FUNC_END__;
 		return res;
 	}
-	WDC_LOGD("wifi_direct_is_autoconnection_mode() SUCCESS");
+	WDC_LOGD("wifi_direct_get_display_type() SUCCESS");
 	*type = (wifi_direct_display_type_e) rsp.param1;
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+int wifi_direct_add_to_access_list(const char *mac_address, bool allow)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	unsigned char la_mac_addr[6];
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	int res = WIFI_DIRECT_ERROR_NONE;
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (!mac_address) {
+		WDC_LOGE("mac_addr is NULL");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_ADD_TO_ACCESS_LIST;
+	req.client_id = client_info->client_id;
+	req.data.int1 = allow;
+	macaddr_atoe(mac_address, la_mac_addr);
+	memcpy(req.data.mac_addr, la_mac_addr, MACADDR_LEN);
+
+	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
+	if (res != WIFI_DIRECT_ERROR_NONE) {
+		__WDC_LOG_FUNC_END__;
+		return res;
+	}
+	WDC_LOGD("wifi_direct_add_device_to_list() SUCCESS");
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
+}
+
+int wifi_direct_del_from_access_list(const char *mac_address)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	unsigned char la_mac_addr[6];
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	int res = WIFI_DIRECT_ERROR_NONE;
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (!mac_address) {
+		WDC_LOGE("mac_addr is NULL");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_DEL_FROM_ACCESS_LIST;
+	req.client_id = client_info->client_id;
+	macaddr_atoe(mac_address, la_mac_addr);
+	memcpy(req.data.mac_addr, la_mac_addr, MACADDR_LEN);
+
+	res = __wfd_client_send_request(client_info->sync_sockfd, &req, &rsp);
+	if (res != WIFI_DIRECT_ERROR_NONE) {
+		__WDC_LOG_FUNC_END__;
+		return res;
+	}
+	WDC_LOGD("wifi_direct_del_device_from_list() SUCCESS");
 
 	__WDC_LOG_FUNC_END__;
 	return WIFI_DIRECT_ERROR_NONE;

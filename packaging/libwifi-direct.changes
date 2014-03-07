@@ -1,3 +1,6 @@
+* Fri, 07  Mar 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.9)
+  - Add support for managing access list API
+
 * Thu, 13 Feb 2014 Jiung Yu <jiung.yu@samsung.com> (1.0.8)
   - Add support for Wifi Direct Display API and data structure
 

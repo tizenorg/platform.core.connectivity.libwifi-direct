@@ -2995,11 +2995,11 @@ int wifi_direct_init_wifi_display(wifi_direct_display_type_e type, int port, int
 int wifi_direct_deinit_wifi_display(void);
 
 /*****************************************************************************************/
-/* wifi_direct_service_del API function prototype
+/* wifi_direct_get_display_port API function prototype
  * int wifi_direct_get_display_port(int *port)
  */
 /**
- * \brief This API shall delete the service user expects. \n
+ * \brief This API shall get wifi display port. \n
  * @param port              TCP control port of this wifi direct diplay device. Application had enabled the wifi direct display before use this function.
  *
  * \see wifi_direct_init_wifi_display.
@@ -3041,12 +3041,12 @@ int wifi_direct_deinit_wifi_display(void);
 int wifi_direct_get_display_port(int *port);
 
 /*****************************************************************************************/
-/* wifi_direct_service_del API function prototype
+/* wifi_direct_get_display_type API function prototype
  * int wifi_direct_get_display_type(wifi_direct_display_type *type)
  */
 /**
- * \brief This API shall delete the service user expects. \n
- * @param handle              wifi direct display type of this device. Application had enabled the wifi direct display before use this function.
+ * \brief This API shall get wifi display type. \n
+ * @param type              wifi direct display type of this device. Application had enabled the wifi direct display before use this function.
  *
  * \see wifi_direct_init_wifi_display.
  * \see wifi_direct_deinit_wifi_display.
@@ -3085,6 +3085,95 @@ int wifi_direct_get_display_port(int *port);
  *
  ******************************************************************************/
 int wifi_direct_get_display_type(wifi_direct_display_type_e *type);
+
+/*****************************************************************************************/
+/* wifi_direct_add_to_access_list API function prototype
+ * int wifi_direct_add_to_access_list(const char *mac_address, bool allow)
+ */
+/**
+ * \brief This API shall add device to list to automatically allow or deny connection request. \n
+ * @param mac_address              device mac address to add device list.
+ * @param allow						allow or deny flag.
+ *
+ * \see wifi_direct_del_from_access_list.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_add_to_access_list(const char *mac_address, bool allow);
+
+/*****************************************************************************************/
+/* wifi_direct_del_from_access_list API function prototype
+ * int wifi_direct_del_from_access_list(const char *mac_address, bool allow)
+ */
+/**
+ * \brief This API shall add device to list to automatically allow or deny connection request. \n
+ * @param mac_address              device mac address to delete from list.
+ *
+ * \see wifi_direct_add_to_access_list.
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ *
+ * \return Return Type (int) \n
+ *	WIFI_DIRECT_ERROR_NONE on Success \n
+ *	WIFI_DIRECT_ERROR_NOT_PERMITTED  for Operation not permitted \n
+ *	WIFI_DIRECT_ERROR_OUT_OF_MEMORY  for Out of memory \n
+ *	WIFI_DIRECT_ERROR_RESOURCE_BUSY  for Device or resource busy \n
+ *	WIFI_DIRECT_ERROR_INVALID_PARAMETER for Invalid function parameter \n
+ * 	WIFI_DIRECT_ERROR_CONNECTION_TIME_OUT for Connection timed out \n
+ *	WIFI_DIRECT_ERROR_NOT_INITIALIZED Not for initialized \n
+ *	WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for I/O error \n
+ *	WIFI_DIRECT_ERROR_WIFI_USED for WiFi is being used \n
+ *	WIFI_DIRECT_ERROR_MOBILE_AP_USED for Mobile AP is being used \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_FAILED for Connection failed \n
+ *	WIFI_DIRECT_ERROR_AUTH_FAILED for Authentication failed \n
+ *	WIFI_DIRECT_ERROR_OPERATION_FAILED for Operation failed \n
+ *	WIFI_DIRECT_ERROR_TOO_MANY_CLIENT for Too many client \n
+ *	WIFI_DIRECT_ERROR_ALREADY_INITIALIZED for Already initialized client \n
+ *	WIFI_DIRECT_ERROR_CONNECTION_CANCELED \n
+ *
+ *
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_del_from_access_list(const char *mac_address);
 
 /**
  * @}
