@@ -236,6 +236,18 @@ typedef enum
  */
 typedef struct
 {
+	int allowed;		/** Is device allowed**/
+	char *device_name;	/** Null-terminated device friendly name. */
+	char *mac_address;	/** Device's P2P Device Address */
+} wifi_direct_access_list_info_s;
+
+
+/**
+ * @struct wifi_direct_discovered_peer_info_s
+ * Wi-Fi Direct buffer structure to store result of peer discovery
+ */
+typedef struct
+{
 	char *device_name;  /** Null-terminated device friendly name. */
 	char *mac_address;  /** Device's P2P Device Address */
 	char *interface_address;  /** Device's P2P Interface Address. Valid only if device is a P2P GO. */
@@ -1016,6 +1028,90 @@ int wifi_direct_start_discovery(bool listen_only, int timeout);
  *
  ******************************************************************************/
 int wifi_direct_cancel_discovery(void);
+
+
+/**
+ * access list notification callback function type. \n
+ *
+ * @param device The device that is in access list.
+ * @param user_data The user data passed from the foreach function.
+ * @return @c true to continue with the next iteration of the loop,
+ * \n @c false to break out of the loop.
+ *
+ * @pre wifi_direct_get_access_list() will invoke this function.
+ *
+ * @see wifi_direct_get_access_list()
+ *
+ */
+typedef bool(*wifi_direct_access_list_cb)	(wifi_direct_access_list_info_s *device, void *user_data);
+
+/*****************************************************************************************/
+/* wifi_direct_get_access_list API function prototype
+ * int wifi_direct_get_access_list(wifi_direct_discovered_peer_cb, void* user_data)
+ */
+/**
+ * \brief This API shall get the information of all devices in access list. \n
+ *
+ * @param callback The callback function to invoke.
+ * @param user_data The user data passed from the foreach function.
+ *
+ * \see wifi_direct_discovered_peer_cb
+ *
+ * \par Sync (or) Async:
+ * This is a Synchronous API.
+ *
+ * \warning
+ *  None
+ *
+ * \return Return Type (int) \n
+ * - WIFI_DIRECT_ERROR_NONE on success \n
+ * - WIFI_DIRECT_ERROR_OPERATION_FAILED for "Unkown error" \n
+ * - WIFI_DIRECT_ERROR_OUT_OF_MEMORY for "Out of memory" \n
+ * - WIFI_DIRECT_ERROR_COMMUNICATION_FAILED for "I/O error" \n
+ * - WIFI_DIRECT_ERROR_NOT_PERMITTED for "Operation not permitted" \n
+ * - WIFI_DIRECT_ERROR_INVALID_PARAMETER for "Invalid function parameter" \n
+ * - WIFI_DIRECT_ERROR_RESOURCE_BUSY for "Device or resource busy" \n
+ * - WIFI_DIRECT_ERROR_STRANGE_CLIENT for "Invalid Client" \n
+ *
+ *
+ * \par Prospective Clients:
+ * External Apps.
+ *
+ * \code
+ *
+ * #include <wifi-direct.h>
+ *
+ * bool _cb_access_list_impl(wifi_direct_access_list_info_s* device, void* user_data)
+ * {
+ *	struct appdata* ad = (struct appdata*) user_data;
+ *
+ *	if(NULL != device)
+ *	{
+ *		memcpy(&ad->access_list[ad->access_list_count], device, sizeof(wifi_direct_access_list_info_s));
+		ad->access_list_count++;
+ *	}
+ *
+ *	return true;    // continue with the next iteration of the loop
+ * }
+ *
+ *
+ * void foo()
+ * {
+ * 	int result;
+ *
+ * 	ad->access_list = NULL;
+ * 	ad->access_list_count = 0;
+ * 	result = wifi_direct_get_access_list(_cb_access_list_impl, (void*)ad);
+ *
+ * 	if(result == WIFI_DIRECT_ERROR_NONE)......... // get access list is successful
+ *
+ *\endcode
+ *
+ *\remarks None.
+ *
+ ******************************************************************************/
+int wifi_direct_get_access_list(wifi_direct_access_list_cb callback,
+												void *user_data);
 
 
 /**
@@ -3138,6 +3234,7 @@ int wifi_direct_add_to_access_list(const char *mac_address, bool allow);
 /**
  * \brief This API shall add device to list to automatically allow or deny connection request. \n
  * @param mac_address              device mac address to delete from list.
+ * 										  if 00:00:00:00:00:00, reset list
  *
  * \see wifi_direct_add_to_access_list.
  *

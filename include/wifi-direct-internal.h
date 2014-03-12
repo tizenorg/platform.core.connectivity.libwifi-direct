@@ -146,6 +146,7 @@ typedef enum
 	WIFI_DIRECT_CMD_GET_DISPLAY_PORT,
 	WIFI_DIRECT_CMD_GET_DISPLAY_TYPE,
 
+	WIFI_DIRECT_CMD_GET_ACCESS_LIST,
 	WIFI_DIRECT_CMD_ADD_TO_ACCESS_LIST,
 	WIFI_DIRECT_CMD_DEL_FROM_ACCESS_LIST,
 
@@ -202,6 +203,17 @@ typedef struct
 	wifi_direct_primary_device_type_e primary_dev_type;
 	wifi_direct_secondary_device_type_e secondary_dev_type;
 } wfd_config_data_s;
+
+
+/**
+ * Wi-Fi Direct buffer structure to store access list for IPC
+ */
+typedef struct
+{
+	bool allowed;
+	char device_name[WIFI_DIRECT_MAX_DEVICE_NAME_LEN + 1];
+	unsigned char mac_address[6];
+} wfd_access_list_info_s;
 
 
 /**

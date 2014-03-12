@@ -431,6 +431,8 @@ char *__wfd_client_print_cmd(wifi_direct_cmd_e cmd)
 		return "WIFI_DIRECT_CMD_GET_DISPLAY_PORT";
 	case WIFI_DIRECT_CMD_GET_DISPLAY_TYPE:
 		return "WIFI_DIRECT_CMD_GET_DISPLAY_TYPE";
+	case WIFI_DIRECT_CMD_GET_ACCESS_LIST:
+		return "WIFI_DIRECT_CMD_GET_ACCESS_LIST";
 	case WIFI_DIRECT_CMD_ADD_TO_ACCESS_LIST:
 		return "WIFI_DIRECT_CMD_ADD_TO_ACCESS_LIST";
 	case WIFI_DIRECT_CMD_DEL_FROM_ACCESS_LIST:
@@ -1386,6 +1388,122 @@ static char **get_service_list(char *services, unsigned int *count)
                 }
                 return NULL;
         }
+}
+
+int wifi_direct_get_access_list(wifi_direct_access_list_cb cb,
+												void *user_data)
+{
+	__WDC_LOG_FUNC_START__;
+	wifi_direct_client_info_s *client_info = __wfd_get_control();
+	wifi_direct_client_request_s req;
+	wifi_direct_client_response_s rsp;
+	int res = WIFI_DIRECT_ERROR_NONE;
+	int i;
+
+	if ((client_info->is_registered == false) ||
+			(client_info->client_id == WFD_INVALID_ID)) {
+		WDC_LOGE("Client is NOT registered");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_NOT_INITIALIZED;
+	}
+
+	if (!cb) {
+		WDC_LOGE("NULL Param [callback]!");
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_INVALID_PARAMETER;
+	}
+
+	memset(&req, 0, sizeof(wifi_direct_client_request_s));
+	memset(&rsp, 0, sizeof(wifi_direct_client_response_s));
+
+	req.cmd = WIFI_DIRECT_CMD_GET_ACCESS_LIST;
+	req.client_id = client_info->client_id;
+
+	pthread_mutex_lock(&g_client_info.mutex);
+	res = __wfd_client_write_socket(client_info->sync_sockfd, &req, sizeof(wifi_direct_client_request_s));
+	if (res != WIFI_DIRECT_ERROR_NONE) {
+		WDC_LOGE("Failed to write into socket [%s]", __wfd_print_error(res));
+		__wfd_reset_control();
+		pthread_mutex_unlock(&g_client_info.mutex);
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	}
+	WDC_LOGD("Succeeded to send request [%d: %s]", req.cmd, __wfd_client_print_cmd(req.cmd));
+
+	res = __wfd_client_read_socket(client_info->sync_sockfd, &rsp, sizeof(wifi_direct_client_response_s));
+	if (res <= 0) {
+		WDC_LOGE("Failed to read socket [%d]", res);
+		__wfd_reset_control();
+		pthread_mutex_unlock(&g_client_info.mutex);
+		__WDC_LOG_FUNC_END__;
+		return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+	} else {
+		if (rsp.cmd != req.cmd) {
+			WDC_LOGE("Invalid resp [%d]", rsp.cmd);
+			pthread_mutex_unlock(&g_client_info.mutex);
+			__WDC_LOG_FUNC_END__;
+			return WIFI_DIRECT_ERROR_COMMUNICATION_FAILED;
+		}
+
+		if (rsp.result != WIFI_DIRECT_ERROR_NONE) {
+			WDC_LOGE("Result received [%s]", __wfd_print_error(rsp.result));
+			pthread_mutex_unlock(&g_client_info.mutex);
+			__WDC_LOG_FUNC_END__;
+			return rsp.result;
+		}
+	}
+
+	int num = rsp.param1;
+	wfd_access_list_info_s *buff = NULL;
+
+	WDC_LOGD("Num of access list = %d", num);
+
+	if (num > 0) {
+		buff = (wfd_access_list_info_s*) calloc(num, sizeof (wfd_access_list_info_s));
+		if (!buff) {
+			WDC_LOGE("Failed to alloc memory");
+			pthread_mutex_unlock(&g_client_info.mutex);
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+
+		res = __wfd_client_read_socket(client_info->sync_sockfd, (char*) buff,
+								num * sizeof(wfd_access_list_info_s));
+		pthread_mutex_unlock(&g_client_info.mutex);
+		if (res <= 0) {
+			free(buff);
+			WDC_LOGE("Failed to read socket");
+			__wfd_reset_control();
+			return WIFI_DIRECT_ERROR_OPERATION_FAILED;
+		}
+
+		WDC_LOGD("wifi_direct_get_access_list() SUCCESS");
+
+		wifi_direct_access_list_info_s access_list;
+
+		for (i = 0; i < num; i++) {
+			memset(&access_list, 0, sizeof(wifi_direct_access_list_info_s));
+			access_list.device_name = strdup(buff[i].device_name);
+			access_list.mac_address = (char*) calloc(1, MACSTR_LEN);
+			snprintf(access_list.mac_address, MACSTR_LEN, MACSTR, MAC2STR(buff[i].mac_address));
+			access_list.allowed = buff[i].allowed;
+
+			if (!cb(&access_list, user_data))
+				i = num;
+
+			if (access_list.device_name)
+				free(access_list.device_name);
+			if (access_list.mac_address)
+				free(access_list.mac_address);
+		}
+
+		if (buff)
+			free(buff);
+	} else {
+		pthread_mutex_unlock(&g_client_info.mutex);
+	}
+
+	__WDC_LOG_FUNC_END__;
+	return WIFI_DIRECT_ERROR_NONE;
 }
 
 int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb cb,

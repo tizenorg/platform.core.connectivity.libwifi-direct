@@ -41,7 +41,6 @@ char *wfd_print_state(wifi_direct_state_e s)
 	case WIFI_DIRECT_STATE_DEACTIVATED:
 		return "DEACTIVATED";
 		break;
-
 	case WIFI_DIRECT_STATE_DEACTIVATING:
 		return "DEACTIVATING";
 		break;
