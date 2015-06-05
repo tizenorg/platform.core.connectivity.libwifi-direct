@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/wait.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <string.h>
@@ -130,7 +131,7 @@ static int macaddr_atoe(const char *p, unsigned char mac[])
 	int i = 0;
 
 	for (;;) {
-		mac[i++] = (char) strtoul(p, &p, 16);
+		mac[i++] = (char) strtoul(p, (char **)&p, 16);
 		if (!*p++ || i == 6)
 			break;
 	}
@@ -574,7 +575,7 @@ static int __wfd_client_send_request(int sockfd, wifi_direct_client_request_s *r
 	}
 	WDC_LOGD("Succeeded to send request [%d: %s]", req->cmd, __wfd_client_print_cmd(req->cmd));
 
-	res = __wfd_client_read_socket(sockfd, rsp, sizeof(wifi_direct_client_response_s));
+	res = __wfd_client_read_socket(sockfd, (char*)rsp, sizeof(wifi_direct_client_response_s));
 	pthread_mutex_unlock(&g_client_info.mutex);
 	if (res <= 0) {
 		WDC_LOGE("Failed to read socket [%d]", res);
@@ -1430,7 +1431,7 @@ int wifi_direct_get_access_list(wifi_direct_access_list_cb cb,
 	}
 	WDC_LOGD("Succeeded to send request [%d: %s]", req.cmd, __wfd_client_print_cmd(req.cmd));
 
-	res = __wfd_client_read_socket(client_info->sync_sockfd, &rsp, sizeof(wifi_direct_client_response_s));
+	res = __wfd_client_read_socket(client_info->sync_sockfd, (char*)&rsp, sizeof(wifi_direct_client_response_s));
 	if (res <= 0) {
 		WDC_LOGE("Failed to read socket [%d]", res);
 		__wfd_reset_control();
@@ -1546,7 +1547,7 @@ int wifi_direct_foreach_discovered_peers(wifi_direct_discovered_peer_cb cb,
 	}
 	WDC_LOGD("Succeeded to send request [%d: %s]", req.cmd, __wfd_client_print_cmd(req.cmd));
 
-	res = __wfd_client_read_socket(client_info->sync_sockfd, &rsp, sizeof(wifi_direct_client_response_s));
+	res = __wfd_client_read_socket(client_info->sync_sockfd, (char*)&rsp, sizeof(wifi_direct_client_response_s));
 	if (res <= 0) {
 		WDC_LOGE("Failed to read socket [%d]", res);
 		__wfd_reset_control();
@@ -1900,7 +1901,7 @@ int wifi_direct_foreach_connected_peers(wifi_direct_connected_peer_cb cb,
 	}
 	WDC_LOGD("Succeeded to send request [%d: %s]", req.cmd, __wfd_client_print_cmd(req.cmd));
 
-	res = __wfd_client_read_socket(client_info->sync_sockfd, &rsp, sizeof(wifi_direct_client_response_s));
+	res = __wfd_client_read_socket(client_info->sync_sockfd, (char*)&rsp, sizeof(wifi_direct_client_response_s));
 	if (res <= 0) {
 		WDC_LOGE("Failed to read socket [%d]", res);
 		__wfd_reset_control();
@@ -3648,7 +3649,7 @@ int wifi_direct_foreach_persistent_groups(wifi_direct_persistent_group_cb cb,
 	}
 	WDC_LOGD("Succeeded to send request [%d: %s]", req.cmd, __wfd_client_print_cmd(req.cmd));
 
-	res = __wfd_client_read_socket(client_info->sync_sockfd, &rsp, sizeof(wifi_direct_client_response_s));
+	res = __wfd_client_read_socket(client_info->sync_sockfd, (char*)&rsp, sizeof(wifi_direct_client_response_s));
 	if (res <= 0) {
 		WDC_LOGE("Failed to read socket [%d]", res);
 		__wfd_reset_control();
